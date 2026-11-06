@@ -1,0 +1,3 @@
+{"file": "CONTEXT.md", "reason": "D15/D16/D17 数据边界与口径定义，验证时据此判断各源是否满足设计假设"}
+{"file": "docs/design.md", "reason": "第3节数据源表给出每源应取什么、角色，验证对照用"}
+{"file": ".trellis/tasks/11-06-data-feasibility/design.md", "reason": "本任务验证方法与七目标三态判定标准"}
