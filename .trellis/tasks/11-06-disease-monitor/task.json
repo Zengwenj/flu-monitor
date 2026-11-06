@@ -1,0 +1,32 @@
+{
+  "id": "disease-monitor",
+  "name": "disease-monitor",
+  "title": "传染病数据监测工具",
+  "description": "个人用传染病流行趋势监测工具：GitHub Actions 每周自动抓取公开监测数据、算 Goldstein 指数与成都风险等级、更新可分享网页，并支持本地双触发。父任务，统管四个可独立验证的子交付。（自 InspirationStorm 迁移重建）",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "zengw",
+  "assignee": "zengw",
+  "createdAt": "2026-11-06",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "11-06-data-fetch",
+    "11-06-compute-index",
+    "11-06-build-site",
+    "11-06-deploy",
+    "11-06-data-feasibility"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}
