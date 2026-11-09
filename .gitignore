@@ -13,3 +13,6 @@ __pycache__/
 
 # 四川流感指数图片临时目录
 .tmp_sichuan/
+
+# 渲染产物：由 Pages artifact 部署，不进 git 历史（M4b）
+site/

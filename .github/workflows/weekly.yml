@@ -1,0 +1,99 @@
+name: Weekly data update
+
+on:
+  schedule:
+    # UTC 周五 02:00 = 北京时间周五 10:00（官方周报周三/四发布，周五抓取安全）
+    - cron: "0 2 * * 5"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write   # 回写 data/
+  pages: write      # 部署 Pages
+  id-token: write   # deploy-pages 所需
+
+concurrency:
+  group: weekly-data-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install poppler-utils (pdftotext)
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+
+      - name: Install Python deps
+        run: pip install -r requirements.txt
+
+      - name: Connectivity probe (chinacdc.cn)
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 \
+                 -A "Mozilla/5.0" https://www.chinacdc.cn/ || echo 000)
+          echo "chinacdc.cn HTTP status: $code"
+          if [ "$code" = "200" ]; then
+            echo "CHINACDC_REACHABLE=true" >> "$GITHUB_ENV"
+          else
+            echo "CHINACDC_REACHABLE=false" >> "$GITHUB_ENV"
+          fi
+
+      - name: Fetch WHO FluNet
+        id: flunet
+        continue-on-error: true
+        timeout-minutes: 15
+        run: python -X utf8 src/fetch_flunet.py
+
+      - name: Fetch sentinel weekly (chinacdc)
+        id: sent
+        if: env.CHINACDC_REACHABLE == 'true'
+        continue-on-error: true
+        run: python -X utf8 src/fetch_sentinel.py
+
+      - name: Fetch flu weekly (chinacdc)
+        id: flu
+        if: env.CHINACDC_REACHABLE == 'true'
+        continue-on-error: true
+        run: python -X utf8 src/fetch_flu_south.py
+
+      - name: Write run_status.json
+        if: always()
+        env:
+          SENT: ${{ steps.sent.outcome }}
+          FLU: ${{ steps.flu.outcome }}
+          FLUNET: ${{ steps.flunet.outcome }}
+          REACH: ${{ env.CHINACDC_REACHABLE }}
+        run: python -X utf8 src/write_run_status.py
+
+      - name: Compute index and build site
+        run: |
+          python -X utf8 src/compute_index.py
+          python -X utf8 src/build_site.py
+
+      - name: Commit data back to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "no data changes to commit"
+          else
+            git commit -m "chore(data): weekly update $(date -u +%F)"
+            git push
+          fi
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

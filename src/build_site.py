@@ -18,7 +18,27 @@ from compute_index import child_rank, pathogen_ranking, pathogen_trend  # noqa: 
 
 FLU_CSV = ROOT / "data" / "flu_south.csv"
 SC_CSV = ROOT / "data" / "sichuan_monthly.csv"
+RUN_STATUS = ROOT / "data" / "run_status.json"
 OUT = ROOT / "site" / "index.html"
+
+
+def run_banner() -> str:
+    """M4b/momus B1：读本次运行状态——chinacdc 源本次 skipped/failed 时显诚实横幅，
+    避免"旧数据被标数据正常"。本地 run_local 无 run_status.json → 不显。"""
+    import json
+    if not RUN_STATUS.exists():
+        return ""
+    try:
+        st = json.loads(RUN_STATUS.read_text(encoding="utf-8"))
+    except Exception:
+        return ""
+    srcs = st.get("sources", {})
+    names = {"flu_south": "流感周报", "sentinel": "哨点周报"}
+    bad = [names[k] for k in names if srcs.get(k) in ("skipped", "failed")]
+    if not bad:
+        return ""
+    return (f'<div class="banner">⚠ 本次更新未能获取最新数据（{"、".join(bad)}） · '
+            f'当前展示为上次成功的存量数据 · 运行时间 {st.get("run_at", "?")}</div>')
 
 SC_LV4_ADVICE = [
     "（1）勤洗手，打喷嚏或咳嗽时用纸巾或袖子遮住口、鼻；",
@@ -211,6 +231,7 @@ TPL = """<!DOCTYPE html>
 <div class="wrap">
   <h1>成都 · 呼吸道防护参考</h1>
   <div class="sub">分块证据 · 各自口径 · 不合成总分</div>
+  {run_banner}
   {banner}
   <div class="card">
     <h2>四川官方流感分级（月度 · 成都=平原区）</h2>
@@ -242,6 +263,7 @@ TPL = """<!DOCTYPE html>
     口径说明：四川分级为省疾控平原区（月度）；流感指数为南方片哨点（周度）；多病原排行/趋势/儿童卡均为
     全国哨点口径（非成都实测）。排序为名称非数值；箭头仅表较上周方向；Goldstein 指数为相对强度指数
     （ILI%×阳性率），非人群感染率。
+    据中疾控《版权与免责声明》注明：稿件来源：中国疾病预防控制中心；WHO FluNet 数据为国家层面公开数据。
     页面生成时间：{gen} · 数据以官方发布为准。
   </div>
 </div>
@@ -279,7 +301,7 @@ def render() -> None:
 
     banner_html = (f'<div class="banner">⚠ {flu["banner"]}</div>'
                    if flu.get("banner") else "")
-    html = TPL.format(banner=banner_html, flu_body=flu_body,
+    html = TPL.format(run_banner=run_banner(), banner=banner_html, flu_body=flu_body,
                       sc_body=sc_body, rank_body=ranking_block(),
                       trend_body=trend_block(), child_body=child_block(),
                       gen=date.today().isoformat())
