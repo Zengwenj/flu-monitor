@@ -6,3 +6,7 @@
 
 # 本地双击运行输出（方案 b 独立目录，不污染发布数据）
 local_out/
+
+# Python 构建产物
+__pycache__/
+*.pyc
