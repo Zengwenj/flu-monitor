@@ -1,106 +1,83 @@
-# Design：M2 最小闭环（流感一条线纵切）——修订版 r2
+# Design：M3b 展示层（仪表盘）
 
-> 本文档是 **M2 里程碑的技术设计**，范围横跨 data-fetch / compute-index / build-site 三个子任务的"流感最小切片"。基于 M1 可行性报告的已确认事实。M3 再扩展。
-> **r2 修订（2026-11-06）**：吸收 metis 缺口分析（GAP-1~9）与 momus 评审（BLOCKER 1/2）。修订点以〔B1〕〔B2〕〔G#〕标注。
+> M3b = 在 M2 极简分块页基础上升级为阶段二仪表盘，横跨 compute-index（计算扩展）+ build-site（渲染）两个子任务。消费 M3a 产出的 3 个新 CSV。继承 M2 方式A内联 / file://离线 / 无外部依赖 / 分块不合成总分 / 状态文案枚举 契约。
+> 基于 metis 缺口分析（2026-11-09，GAP-1~10）+ 用户 3 项决策。前一里程碑 M3b 的 design 覆盖 M2 版（M2 版见 git 1aad7ea）。
 
-## M2 目标（一句话）
+## 用户已定（本次 AskUserQuestion）
 
-用最少代码让"抓流感周报 → 算 Goldstein 指数 → 极简分块页本地可打开"端到端跑通一次，产出第一个有真实数据的成品页。纵切不横切：只做流感一条线。
+- **趋势图**：本年度全国哨点阳性率逐周折线，**不叠往年线**（数据仅约2年+D17禁口径混用），内联 SVG 渲染（零外部依赖，file://可开）〔GAP-1/3〕
+- **往年差值块**：显占位"待历史回补后启用"，**不碰 M2 的 fetch_flu_south.py**〔GAP-2〕
+- **多病原排行**：全 11 病原按门急诊阳性率降序〔GAP-4〕
 
-## 范围边界
+## 默认假设（metis 建议，带入实施，可随时叫停）
 
-**M2 做**：抓最近 1 期流感周报 PDF 解析南方 ILI%+阳性率算指数；四川分级手填 M1 已确认值（2026-10）；生成极简分块页 file:// 可打开。
+- 儿童卡：显门急诊 0-4岁 + 5-14岁 前三名，标注"全国哨点门急诊、排序非数值"〔GAP-8〕
+- 排序占位：2026W6/W12 与 2025W14-22 统一显示"该期排序未获取"，不 join changes.log 细分〔GAP-6〕
+- 趋势图 X 轴：用"第N周"标注，不推算 week_start 日期（避免跨年 ISO 周验证）〔GAP-7〕
+- 合并版空 source_pubdate：显示"（月度合并版，日期未单独标注）"〔GAP-9〕
+- compute/build 两步顺序执行各自验收，M3b 不再细拆〔GAP-10〕
 
-**M2 不做**（留 M3/M4）：多病原/儿童/FluNet/历史回补（M3）、四川自动识别脚本（M3）、Actions/Pages（M4）、同期对比曲线（M3）。
+## 职责边界（GAP-5 消解）
 
-## 数据契约（修订后，权威）
+- **compute_index.py 扩展**：新增函数读 sentinel_national_rates.csv / sentinel_rank.csv，产出**内存中的汇总结构**传给 build（不写新中间 CSV）。Goldstein 部分不动。
+  - `pathogen_ranking()`：取最新 ok 周 11 病原门急诊行降序（数值主数据，sentinel_national_rates.csv 的 rates 几乎每周齐全）
+  - `child_rank()`〔B3 修正〕：取最新**有排序数据的**周（可能与 rates 最新周不同）；**返回结构含该周 status**——若目标周 sentinel_rank.csv 为 rank_unavailable，返回 `{available:False, week, reason}` 供渲染层显占位，而非跳过该周静默取更早周。调用层据 available 决定显数据还是显"该期排序未获取"。
+- **build_site.py 扩展**：调 compute 的汇总函数 + 新增 3 块渲染 + SVG 趋势图生成。方式A内联不变。
+- **不改**：fetch_flu_south.py、fetch_sentinel.py、fetch_flunet.py、三个 data CSV、compute_index.py 的 Goldstein 逻辑。
 
-### `data/flu_south.csv`
-列：`iso_year, iso_week, week_start, south_ili_pct, south_flu_positive_pct, goldstein_index, source_url, source_pubdate, fetched_at, status`
-- `status` ∈ `ok / fetch_failed / parse_failed` 〔B2〕
-- `goldstein_index` 由计算步骤**写回本列**〔B1：接口闭合，不再有"独立输出"选项〕
-- 主键 `(iso_year, iso_week)`。**写入规则（r3，消解失败覆盖冲突）**：
-  1. **成功才覆盖**：新抓到同周 ok 数据 → 覆盖该周旧行（幂等，支持官方修订）
-  2. **失败永不覆盖成功**：运行失败时，若该周已有 ok 行则**不动它**，失败仅记日志；仅当该周无任何行时才写一行 `fetch_failed/parse_failed`（数值列空）
-  3. 页面取数：数值/指数永远取**最新 status=ok 行**；若存在比它更晚周次的失败行 → 叠加失败横幅（"最新一期获取失败 · 显示上次成功数据（{W}周）"）
-
-### `data/sichuan_monthly.csv`
-列：`year, month, region, level, level_name, source_url, source_pubdate, fetched_at, confirmed_by, note`
-- 主键 `(year, month, region)` 唯一〔G3/B2〕；M3 识别脚本遇同主键已存在且 `confirmed_by=人工` 时不覆盖，只允许 `note` 记录差异
-- `source_pubdate`（官方发布日）与 `fetched_at`（写入时间）分离〔B2〕
-
-## 技术设计
-
-### 数据获取（流感切片）
-- **源**：国家流感中心流感周报，两跳：列表页 `chinacdc.cn/jksj/jksj04_14249/` → 最新一期文章页 → PDF 链接 → 下载。
-  - **"最新一期"识别**〔G1〕：S2 前先抓该列表页，确认其为静态 HTML 且首条即最新；实现时按文章链接旁的**发布日期**取最新，不盲取第一个 `<a>`。相对路径 `./YYYYMM/t….html` 拼 `https://www.chinacdc.cn/jksj/jksj04_14249/` 前缀成绝对 URL。
-  - **HTTP 客户端**〔G8〕：先 urllib（带浏览器 UA）；403/空页即切 curl 子进程，不调参。
-- **解析**：`pdftotext -layout`（`C:/Users/zengw/anaconda3/Library/bin/pdftotext.exe`），**子进程显式 `encoding='utf-8'`**〔G7〕。
-  - **正则多精度**〔G2〕：阳性率括号兼容 `(XX%)`/`(XX.X%)`/`(XX.XX%)`；同一数值多处出现时**优先取正文"病原学监测"节的高精度版本**（摘要表可能是一位小数）。实施时另抽一期跨年样本（如 2025 年某期）验证格式稳定后才定稿正则。
-- **容错**〔B2/r3〕：下载失败/解析失败时按上述"写入规则 2"处理——**不覆盖任何已有 ok 行**；该周无行才写失败行（数值空）。不写坏值不写 0。下游按"写入规则 3"显示失败横幅。
-
-### 指数计算（Goldstein 切片）〔B1〕
-- 读 flu_south.csv 的两列，`goldstein = south_ili_pct × south_flu_positive_pct`（直乘，4.8×17.14≈82.3），**写回同 CSV 的 `goldstein_index` 列**（唯一产物形式，页面只从该列读）。
-- 标注为相对强度指数（CONTEXT 术语），不解释为感染率。无历史→同期对比标"无往年数据"。
-
-### 四川分级（手填切片）〔B2/G3〕
-- 手填值：2026-10 成都平原区 IV 级活跃期，`confirmed_by=人工`，`source_pubdate=2026-10-19`，note="M1 multimodal 识别+人工确认"。
-- **展示语义**：该值是 10 月已确认值；首屏当前月（11 月）无新值时显示**"本月待更新"**，不默认绿、不冒充当月。
-
-### 网页构建（阶段一切片）
-- **内联形态=方式 A**〔G4〕：`build_site.py` 用字符串插值把数值直接渲染进 HTML 模板；不生成独立 JSON、不用 `fetch()`。改数字=重跑 build。
-- 两块 + 每块标注覆盖期/来源发布日/状态：
-  - 流感块：Goldstein 指数、南方 ILI%、阳性率、周次、发布日；首期环比标"首期无上周数据"
-  - 四川块：2026-10 已确认等级 + "本月待更新"状态〔B2〕
-- **文案来源**〔G5〕：状态文案用本设计附录枚举清单（用户已过目批准）；防护建议**只引官方原文**（四川分级标准表对应等级的防控建议 + 哨点周报健康提示），标出处，不自拟。
-- 纯静态 HTML+内联 CSS，移动端可读。
-
-## 状态文案枚举（唯一允许的状态文案）〔G5〕
-
-| 场景 | 页面文案 |
-|---|---|
-| 正常 | 数据正常 · 第{W}周（{起}-{止}）· 来源发布 {date} |
-| 首期无环比 | 首期数据 · 下次运行后显示环比 |
-| 无往年同期 | 暂无往年同期数据 |
-| 四川上月值 | {month}月已确认等级 · 本月待更新 |
-| 四川缺值 | 官方分级未获取 · 状态未知 |
-| 流感获取失败 | 最新一期获取失败 · 显示上次成功数据（{W}周） |
-| 流感解析失败 | 最新一期解析失败 · 请人工核对官网 |
-| 从未成功获取 | 暂无数据 · 请运行更新 |
-
-## 目录（M2 新建）
+## 页面结构（M2 两块 → M3b 升级为分块仪表盘）
 
 ```
-data/flu_south.csv          data/sichuan_monthly.csv
-src/fetch_flu_south.py      src/compute_index.py      src/build_site.py
-site/index.html             run_local.bat
+成都·呼吸道防护参考（标题不变）
+├ [横幅] 数据失败/过期提示（沿用 M2 逻辑）
+├ 块1 四川官方分级（M2 既有，不动）
+├ 块2 南方片流感（M2 既有：Goldstein+ILI%+阳性率+环比）
+├ 块3 本周vs往年同期  → 占位"待历史回补后启用"〔新，GAP-2〕
+├ 块4 全国多病原活跃度排行〔新〕：11 病原门急诊阳性率降序，每行 病原名+阳性率+环比箭头(↑/→/↓较上周)
+├ 块5 流感/新冠/RSV 本年度趋势〔新〕：3 条内联 SVG 折线（全国门急诊阳性率，X=第N周，Y=%）
+├ 块6 儿童分龄前三〔新〕：0-4岁/5-14岁 门急诊前三名病原（排序非数值）
+└ [脚注] 口径说明（扩充：新增块均为全国哨点口径，非成都；排序为名称非数值）
 ```
 
-## 端到端验证
+## 关键技术点
 
-1. `python src/fetch_flu_south.py` → CSV 生成；南方 ILI%/阳性率与官网当期 PDF 人工核对一致
-2. `python src/compute_index.py` → goldstein_index 列有值且=手算直乘
-3. `python src/build_site.py` → index.html 生成
-4. file:// 打开 → 两块真实数据、状态/口径标注齐全、离线无白屏、手机排版正常
-5. **异常验例×3**〔B2〕：跨月旧四川值→"本月待更新"；四川缺值→"状态未知"；流感 status≠ok→失败横幅。各确认不显 0/最新/绿
+### SVG 趋势图（GAP-3 选项1）
+- compute 从 sentinel_national_rates.csv 取某病原逐周门急诊 positive_pct 序列（按 iso_year,iso_week 排序）
+- build 用纯 Python 生成 `<svg>`：折线 polyline + Y 轴刻度(0~峰值) + X 轴稀疏周标 + 当前值点
+- 3 个病原（流感/新冠/RSV）各一张小图（sparkline 风格），内联进 HTML
+- 无 JS、无 Canvas、无外部库——SVG 字符串直接插值（file:// 绝对安全）
+- 缺数据周：polyline 断点（不连线），不画 0
 
-## 权衡
+### 多病原排行（GAP-4）
+- 取最新 ok 周的 11 病原门急诊行，按 positive_pct 降序
+- 环比箭头：delta_last_week >0 ↑ / =0 → / <0 ↓（空串=未提供，显"—"）〔GAP-9 合并版 delta 空〕
+- D17："增加 N 个百分点"不写"N%"
 
-- 四川 M2 手填不写识别脚本（M3 的 update_sichuan）；只抓 1 期不回补（M3）；回滚=删新建文件。
-- 兼容性：不改已提交文档；M3 在此 CSV 契约上加列/加源，不推翻。
+### 环比箭头 vs 往年（D17 一致性）
+- 箭头只表较上周（delta_last_week 原生）；不涉及往年（往年块占位）
 
-## r2 修订对照
+## 数据状态文案（沿用 M2 枚举 + 新增）
 
-| 来源 | 修订 |
+| 场景 | 文案 |
 |---|---|
-| momus B1 | 指数写回 CSV 列，删除"或独立输出"二义 |
-| momus B2 | status 字段 + 四川时间元数据 + "本月待更新"语义 + 异常验例 |
-| metis G1 | 列表页先验结构、按发布日取最新 |
-| metis G2 | 正则多精度 + 优先正文高精度 + 跨年抽验 |
-| metis G3 | 四川主键唯一 + M3 不覆盖人工确认值 |
-| metis G4 | 内联=方式 A 字符串插值 |
-| metis G5 | 状态文案枚举清单 + 防护建议只引官方 |
-| metis G6 | S7 输出可操作核对信息（本期周次+PDF文件名+对照页） |
-| metis G7 | pdftotext 子进程 encoding='utf-8' |
-| metis G8 | urllib 失败即切 curl |
-| metis G9 | bat 加 cd /d "%~dp0" |
+| 往年差值块（本期） | 待历史回补后启用 |
+| 排序占位周 | 该期排序未获取（官方版式差异/月度合并版） |
+| 合并版无发布日 | （月度合并版，日期未单独标注） |
+| 多病原 delta 空 | —（未提供） |
+| 趋势图缺数据周 | 断点（不连线） |
+
+## 验证方式
+
+1. compute 扩展：单元跑通读 3 CSV，打印 11 病原排行 + 儿童前三 + 趋势序列长度，与 CSV 抽样核对
+2. build：生成 index.html，file:// 打开——6 块齐全、SVG 折线正常显示、无**加载型**外部请求（grep 0 处 fetch/script src/link href/img src=http/url(http；官方来源 `<a href>` 允许保留）、手机排版
+3. 口径标注：新增块均标"全国哨点口径非成都"；排行用"百分点"
+4. 异常：某病原全周缺→趋势图该线断点不画0；排序占位周→显"未获取"不空白
+5. M2 隔离：fetch 三脚本 + 三 data CSV + compute 的 Goldstein 逻辑 git diff 空
+
+## 回滚
+
+M3b 改 compute_index.py + build_site.py + site/index.html（均 M2 已 tracked）。回滚=git checkout 这三个文件回 M3a 后状态。数据 CSV 不动。
+
+## 兼容性
+
+不推翻 M2 方式A契约；不改 M3a 数据产物；M4 自动化时 build 调用链不变（compute→build）。

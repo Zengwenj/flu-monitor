@@ -1,3 +1,3 @@
-{"file": ".trellis/tasks/11-06-disease-monitor/implement.md", "reason": "M2 验收基准（含异常验例×3）"}
-{"file": "CONTEXT.md", "reason": "核对实施是否违反 D14/D15/D17/D19 口径"}
-{"file": ".trellis/tasks/11-06-disease-monitor/design.md", "reason": "核对状态文案是否只用枚举、接口是否按契约闭合"}
+{"file": ".trellis/tasks/11-06-disease-monitor/implement.md", "reason": "M3b 验收基准（6块/SVG/异常验例/M2-M3a隔离）"}
+{"file": "CONTEXT.md", "reason": "核对口径（D14不合成总分/D15全国非成都/D17百分点与箭头仅环比）"}
+{"file": ".trellis/tasks/11-06-disease-monitor/design.md", "reason": "核对状态文案只用枚举、职责边界、离线无外部依赖"}

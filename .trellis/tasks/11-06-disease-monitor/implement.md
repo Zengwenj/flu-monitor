@@ -1,60 +1,54 @@
-# Implement：M2 最小闭环执行清单——修订版 r2
+# Implement：M3b 展示层执行清单
 
-> M2 纵切（流感一条线）有序步骤。技术契约见本目录 design.md r2（含 metis/momus 修订）。已获用户批准执行（含写代码授权）；momus 复审 APPROVE 后开工。
+> 仪表盘升级。技术契约见本目录 design.md。继承 M2 方式A/file://离线。已获 metis 分析+用户 3 决策；momus APPROVE + 用户批准后执行。覆盖 M2 版（git 1aad7ea）。
 
 ## 执行前
-
-- [x] 用户批准 M2 修订版计划（2026-11-06，"批准执行计划"）
-- [x] M1 已验证：pdftotext 路径可用、流感 PDF 南方片数值可提取
-- [ ] momus 复审 r2 → APPROVE
-- [ ] 父任务 implement.jsonl/check.jsonl 已填
+- [ ] momus 复审 M3b design/implement → APPROVE
+- [ ] 用户批准 M3b（写代码）
+- [ ] 不改 fetch 三脚本、三 data CSV、compute 的 Goldstein 逻辑
 
 ## 有序步骤
 
-### S1 建骨架
-- 建 `data/`、`src/`、`site/`；依赖最小化（标准库 + pdftotext 子进程；HTTP 先 urllib 带 UA，失败切 curl 子进程〔G8〕）
+### S1 compute 扩展（计算层，先验数据结构）
+- compute_index.py 新增函数（不动 Goldstein）：
+  - `pathogen_ranking()`：读 sentinel_national_rates.csv，取最新 ok 周 11 病原门急诊行，按 positive_pct 降序，附 delta 箭头
+  - `child_rank()`：读 sentinel_rank.csv，取最新**有排序数据**周的 age 维度 0-4岁/5-14岁 门急诊前三；〔B3〕返回含 `available` 标志——目标周为 rank_unavailable 时返回 `{available:False, week, reason}`，不静默回退更早周，供渲染显占位
+  - `pathogen_trend(pathogen)`：读 sentinel_national_rates.csv，某病原逐周门急诊序列（流感/新冠/RSV 各一）
+- **验证**：命令行跑这几个函数，打印结果与 CSV 抽样核对〔样例以实测最新 ok 周 2026W44 为准，B1 修正〕：排行首位=流感病毒 15.6（门急诊）、第二鼻病毒 11.4、第三人偏肺病毒 4.3；0-4岁门急诊前三=①鼻病毒②流感病毒③副流感病毒；流感趋势序列长度=ok周数（当前 103）。注：验证时以运行时实际最新周为准重新核对，不硬编码周次。
 
-### S2 抓+解析流感周报
-- **S2.0 列表页预验**〔G1〕：抓 `chinacdc.cn/jksj/jksj04_14249/`，确认静态 HTML、记录首条链接与发布日期结构
-- **S2.1**：按发布日期取最新文章页 → 提取 PDF 链接（相对→绝对）→ urllib 下载（失败切 curl）
-- **S2.2**：pdftotext -layout（`encoding='utf-8'`〔G7〕）→ 多精度正则〔G2〕抽南方 ILI%、南方阳性率（优先正文高精度版）、周次、发布日；**另抽一期 2025 年样本验证格式**后才定稿正则
-- **S2.3**：写 `data/flu_south.csv`（契约列，含 status=ok）；失败路径写 fetch_failed/parse_failed 行
-- **验证**：S7 按可操作口径输出核对（见 S7），非自报通过
+### S2 SVG 趋势图生成器
+- build_site.py 新增 `svg_sparkline(series)`：Python 生成内联 `<svg>`（polyline+轴+点），缺周断点
+- **验证**：单元测一条真实序列→输出合法 SVG 字符串；手工塞一个缺周→断点不画0
 
-### S3 Goldstein 计算
-- `src/compute_index.py`：读两数值列 → 直乘 → **写回 goldstein_index 列**〔B1〕；相对强度指数标注随页面呈现；无往年→标"无往年同期数据"
-- **验证**：W44 基准 4.8×17.14=82.272≈82.3 手算一致；若当次抓到 W45 用实际值手算
+### S3 build 渲染 6 块
+- build_site.py：保留 M2 块1(四川)/块2(南方流感)，新增块3占位/块4排行/块5趋势3图/块6儿童卡；脚注扩充口径
+- 状态文案只用 design 枚举表
+- **验证**：生成 index.html，file:// 打开——6 块齐全、SVG 显示、排行降序正确、儿童卡标注齐、往年块显占位
 
-### S4 四川手填
-- `data/sichuan_monthly.csv`：2026-10 成都平原 IV 级活跃期、source_pubdate=2026-10-19、fetched_at=now、confirmed_by=人工、note="M1 multimodal+人工确认"
-- **验证**：与 M1 报告一致；主键唯一
+### S4 离线与隔离校验
+- 检查 index.html **无加载型外部资源**〔B2 修正：只查会触发网络加载的标签/属性，不误伤正当来源超链接〕：
+  grep 命中 `fetch(`、`<script src=`、`<link ...href=`、`<img src="http`、`url(http`（CSS）——均应为 0；
+  **允许** `<a href="https://...">`（官方来源跳转链接，不加载资源、不破坏 file:// 离线）
+- 手机宽度排版正常（窄屏不溢出）
+- git diff 确认 fetch 三脚本/三 CSV/compute Goldstein 段未改
+- **验证**：上述全过（加载型外部资源 0 处；a 超链接允许保留）
 
-### S5 构建分块页（方式 A〔G4/G5/B2〕）
-- `src/build_site.py`：读两个 CSV → 字符串插值渲染 `site/index.html`（无独立 JSON、无 fetch）
-- 两块+状态文案**只用 design.md 附录枚举**；防护建议引官方原文标出处；四川块显示"10月已确认等级·本月待更新"
-- **验证**：file:// 离线打开无白屏；两块真实数据；状态/口径标注齐全；手机宽度排版正常
-
-### S6 本地入口〔G9〕
-- `run_local.bat`：首行 `cd /d "%~dp0"`，依次 fetch→compute→build，完成后 `start site\index.html`
-- **验证**：双击（或 cmd 模拟）一键产出并打开
-
-### S7 端到端自检 + 汇报
-- **异常验例×3**〔B2〕：①四川 CSV 只留 10 月行→页面显示"本月待更新"且不默认绿 ②四川 CSV 清空→"官方分级未获取·状态未知" ③**流感 W44 ok 行保留 + 造一行 W45 fetch_failed→页面仍显示 W44 数值与指数 + 失败横幅（验证失败不覆盖成功、回退链路成立）**
-- 清空 data/ 重跑一次，确认从零可产出
-- **可操作核对输出**〔G6〕："本次抓到 W__ 期，ILI%=X%，阳性率=Y%，来源 PDF={文件名}，验收步骤：打开官网该期 PDF 摘要节核对"
-- 汇报：页面路径+CSV+核对输出，停下等 M2 验收与 M3 决策
+### S5 异常 + 端到端 + trellis-check + 汇报
+- 异常验例：①某病原造全周缺→趋势线断点不画0 ②〔B3〕造"最新排序周为 rank_unavailable"情形→child_rank 返回 available:False、页面儿童卡显"该期排序未获取"（不静默回退更早周、不空白）③多病原 delta 空→显"—"
+- 清空重跑 compute→build 一次确认可复现
+- 可操作核对输出：本次排行首位病原+阳性率、趋势图覆盖周数、儿童前三
+- 派 trellis-check 复核 → 汇报停下等用户验收
 
 ## 停靠点
+S5 完成即停。用户验收仪表盘后，M3 整体（M3a+M3b）完成，进 M4 自动化。
 
-S7 完成即停（roadmap"最重要信心节点"）。用户看过成品后定 M3。
+## 回滚
+git checkout compute_index.py build_site.py site/index.html 回 M3a 后状态。数据 CSV 不动。
 
-## 回滚点
-
-全部新建文件；失败删 `data/ src/ site/ run_local.bat` 重来，不影响已提交文档。
-
-## 验收（对应 roadmap M2 + B2 异常态）
-
-- [ ] index.html file:// 离线显示真实南方流感 Goldstein 指数 + 成都 10 月分级（标"本月待更新"）
-- [ ] 数据与官网当期 PDF 人工核对一致（按 S7 核对输出执行）
-- [ ] 状态/口径标注只用枚举文案；不合成总分；不伪造缺失（异常验例×3 通过）
-- [ ] run_local.bat 一键可复现
+## 验收（对应 roadmap M3b + metis 消解）
+- [ ] 6 块仪表盘 file:// 离线可开，无外部请求
+- [ ] 趋势图本年度折线（不叠往年）、缺周断点、SVG 内联
+- [ ] 多病原 11 降序 + 环比箭头 + "百分点"措辞
+- [ ] 儿童卡 0-4/5-14 门急诊前三 + 口径标注
+- [ ] 往年差值块显占位；排序占位周显"未获取"
+- [ ] M2/M3a 产物零改动（git diff 空）
