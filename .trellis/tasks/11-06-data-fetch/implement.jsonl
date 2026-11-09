@@ -1,0 +1,4 @@
+{"file": "CONTEXT.md", "reason": "D15 数据边界（表1全国数值/表2-3仅前三名）、D17 口径，M3a 抓取须遵循"}
+{"file": ".trellis/tasks/11-06-data-fetch/design.md", "reason": "M3a 数据契约（三CSV schema/FluNet列映射/r3周级覆盖/并列存储）"}
+{"file": ".trellis/tasks/11-06-data-feasibility/research/feasibility-report.md", "reason": "M1 实测（表1在HTML/表2-3前三名/FluNet列NOTDEFINED/四川10月基准）"}
+{"file": "src/fetch_flu_south.py", "reason": "M2 已有抓取脚本范式（r3写入/urllib-curl回退/utf-8），M3a 新脚本保持一致不改它"}
