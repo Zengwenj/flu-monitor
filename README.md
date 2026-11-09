@@ -51,7 +51,8 @@ data/         权威数据（CSV，Excel 可开）：flu_south / sentinel_nation
 src/          抓取（fetch_*）、计算（compute_index）、渲染（build_site）、
               四川录入（update_sichuan）、运行状态（write_run_status）
 site/         生成的网页（不进 git，由 Pages artifact 部署）
-docs/         设计决策（design.md/roadmap.md/adr/）与发布核查（publish-checklist.md）
+docs/         设计决策（design.md/roadmap.md/adr/）、发布核查（publish-checklist.md）、
+              交接文档（handoff.md，遗留项与已知坑）
 .github/      每周自动更新的 workflow
 run_local.bat / update_sichuan.bat   本地双击入口
 ```
