@@ -1,22 +1,25 @@
 # -*- coding: utf-8 -*-
-"""渲染 M2 极简分块证据页 site/index.html。
+"""渲染分块证据页 site/index.html（M3b 阶段二仪表盘）。
 
-r3 契约：
-- 方式 A：字符串插值直接渲染进 HTML 模板（无独立 JSON、无 fetch），file:// 可离线打开
-- 页面取数规则 3：流感数值/指数取最新 status=ok 行；若存在更晚周次的失败行 → 叠加失败横幅
-- 状态文案只使用 design.md 附录枚举（不得自拟）；防护建议只引官方原文并标出处
+契约（M2 r3 + M3b design）：
+- 方式 A：字符串插值直接渲染进 HTML（无独立 JSON、无 fetch），file:// 可离线打开
+- 零外部依赖：趋势图为纯 Python 生成的内联 SVG（无 JS/Canvas/图表库）
+- 分块不合成总分（D14）；状态文案只用枚举；口径标注齐全（D15）
+- 页面取数规则 3：流感数值/指数取最新 status=ok 行；更晚失败行 → 失败横幅
 """
 import csv
+import sys
 from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from compute_index import child_rank, pathogen_ranking, pathogen_trend  # noqa: E402
+
 FLU_CSV = ROOT / "data" / "flu_south.csv"
 SC_CSV = ROOT / "data" / "sichuan_monthly.csv"
 OUT = ROOT / "site" / "index.html"
 
-# 官方原文（四川流感指数分级标准表 IV 级防控建议，M1 逐字提取自
-# https://www.sccdc.cn/Article/View?id=39284 附图，出处标注在页面）
 SC_LV4_ADVICE = [
     "（1）勤洗手，打喷嚏或咳嗽时用纸巾或袖子遮住口、鼻；",
     "（2）避免带病上课上班；",
@@ -52,12 +55,15 @@ def flu_block() -> dict:
     if later_fail:
         banner = f"最新一期获取失败 · 显示上次成功数据（{latest['iso_week']}周）"
     elif fail:
-        banner = f"最新一期解析失败 · 请人工核对官网"
-    # 枚举：正常 / 首期无环比 / 无往年
+        banner = "最新一期解析失败 · 请人工核对官网"
+    prev = [r for r in ok
+            if (int(r["iso_year"]), int(r["iso_week"])) <
+            (int(latest["iso_year"]), int(latest["iso_week"]))]
+    mom = "首期数据 · 下次运行后显示环比" if not prev else \
+        f"较上周 {('↑' if float(latest['goldstein_index'] or 0) > float(max(prev, key=lambda r:(int(r['iso_year']),int(r['iso_week'])))['goldstein_index'] or 0) else ('↓' if float(latest['goldstein_index'] or 0) < float(max(prev, key=lambda r:(int(r['iso_year']),int(r['iso_week'])))['goldstein_index'] or 0) else '→'))}" if prev and all(r["goldstein_index"] for r in [latest]+prev[-1:]) else "环比见多病原排行"
     return {"state": "ok", "banner": banner, **latest,
             "line": f"数据正常 · 第{latest['iso_week']}周 · 来源发布 {latest['source_pubdate']}",
-            "mom": "首期数据 · 下次运行后显示环比",
-            "yoy": "暂无往年同期数据"}
+            "mom": mom, "yoy": "暂无往年同期数据"}
 
 
 def sichuan_block() -> dict:
@@ -72,6 +78,98 @@ def sichuan_block() -> dict:
         line = f"{latest['month']}月已确认等级 · 本月待更新"
     advice = LEVEL_ADVICE.get(latest["level"], [])
     return {"state": "ok", **latest, "line": line, "advice": advice}
+
+
+# ---------------- M3b：SVG 趋势图 ----------------
+
+def _adjacent_week(a: int, b: int) -> bool:
+    """线性周序 a→b 是否相邻（跨年 W52→次年W1 连续；lin=y*53+wk）。"""
+    ya, wa = divmod(a, 53)
+    yb, wb = divmod(b, 53)
+    if ya == yb:
+        return wb - wa == 1
+    if yb - ya == 1 and wb == 1 and wa >= 51:  # 年末（W51/52）→ 次年 W1 连续
+        return True
+    return False
+
+
+def svg_sparkline(series: list, w: int = 300, h: int = 70,
+                  color: str = "#3a6ea5") -> str:
+    """series: [((year,week), pct)] 升序。生成内联 SVG 折线（无 JS/无外部依赖）。
+    周序跳变（缺周）→ 分段 polyline 断点，不画 0。"""
+    if not series:
+        return '<div class="nodata">暂无数据</div>'
+    lin = [(y * 53 + wk, v) for (y, wk), v in series]  # 线性周序
+    xmin, xmax = lin[0][0], lin[-1][0]
+    ymax = max(v for _, v in lin)
+    top = max(ymax * 1.15, 1.0)
+    pad_l, pad_r, pad_t, pad_b = 4, 30, 8, 12
+    iw, ih = w - pad_l - pad_r, h - pad_t - pad_b
+
+    def X(x): return pad_l + (x - xmin) / max(xmax - xmin, 1) * iw
+
+    def Y(v): return pad_t + (1 - v / top) * ih
+
+    segs, cur = [], [lin[0]]
+    for a, b in zip(lin, lin[1:]):
+        if not _adjacent_week(a[0], b[0]):  # 缺周断点（跨年 W52→W1 视为连续）
+            segs.append(cur)
+            cur = []
+        cur.append(b)
+    segs.append(cur)
+    polys = "".join(
+        f'<polyline points="{" ".join(f"{X(x):.1f},{Y(v):.1f}" for x, v in seg)}" '
+        f'fill="none" stroke="{color}" stroke-width="1.6"/>' for seg in segs)
+    lastx, lastv = lin[-1]
+    y0, w0 = divmod(xmin, 53)
+    y1, w1 = divmod(xmax, 53)
+    return (f'<svg viewBox="0 0 {w} {h}" style="width:100%;max-width:{w}px" role="img">'
+            f'{polys}'
+            f'<circle cx="{X(lastx):.1f}" cy="{Y(lastv):.1f}" r="2.6" fill="{color}"/>'
+            f'<text x="{X(lastx)+5:.1f}" y="{Y(lastv)+4:.1f}" font-size="11" fill="{color}">{lastv:g}%</text>'
+            f'<text x="0" y="{h-2}" font-size="9" fill="#999">{y0}W{w0}</text>'
+            f'<text x="{w-34}" y="{h-2}" font-size="9" fill="#999">{y1}W{w1}</text>'
+            f'</svg>')
+
+
+# ---------------- M3b：新块渲染 ----------------
+
+def trend_block() -> str:
+    names = [("流感病毒", "#c0392b"), ("新型冠状病毒", "#7f8c8d"), ("呼吸道合胞病毒", "#8e44ad")]
+    parts = []
+    for name, color in names:
+        parts.append(f'<div class="trendrow"><span class="tlabel">{name}</span>'
+                     f'{svg_sparkline(pathogen_trend(name), color=color)}</div>')
+    return ("".join(parts) +
+            '<div class="src">本年度（含开办期以来）全国哨点门急诊阳性率逐周折线 · '
+            '缺周为断点不画 0 · X 轴为周次</div>')
+
+
+def ranking_block() -> str:
+    rk = pathogen_ranking()
+    if not rk.get("available"):
+        return f'<div class="big">—</div><div class="meta"><span class="tag">{rk.get("reason","暂无数据")}</span></div>'
+    rows = "".join(
+        f'<tr><td>{r["pathogen"]}</td><td class="num">{r["pct"]}%</td>'
+        f'<td class="num">{r["arrow"]}</td></tr>' for r in rk["rows"])
+    return (f'<table class="rank"><tr><th>病原体</th><th>门急诊阳性率</th><th>较上周</th></tr>{rows}</table>'
+            f'<div class="meta"><span class="tag">数据正常 · 第{rk["week"]}周 · 全国哨点口径</span></div>'
+            f'<div class="src">按门急诊流感样病例阳性率降序 · 箭头为较上周方向（百分点变化见数据表）</div>')
+
+
+def child_block() -> str:
+    c = child_rank()
+    if not c.get("available"):
+        return (f'<div class="big">？</div><div class="meta"><span class="tag">'
+                f'{c.get("reason", "官方分级未获取 · 状态未知")}'
+                f'（第{c.get("week","?")}周）</span></div>')
+    groups = "".join(
+        f'<div class="childg"><b>{cat}</b><span class="chain">{" ＞ ".join(trio)}</span></div>'
+        for cat, trio in c["groups"].items())
+    return (f'{groups}'
+            f'<div class="meta"><span class="tag">数据正常 · 第{c["week"]}周 · 全国哨点门急诊</span>'
+            f'<span class="tag">排序非数值</span></div>'
+            f'<div class="src">来源：中疾控哨点监测周报表3 · "＞"为检出率位次 · 非成都口径</div>')
 
 
 TPL = """<!DOCTYPE html>
@@ -96,6 +194,16 @@ TPL = """<!DOCTYPE html>
   .tag{{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;background:#eef4ff;color:#3a6ea5;margin-right:6px}}
   .adv{{margin:8px 0 0;padding:0 0 0 18px;font-size:13px;color:#444;line-height:1.7}}
   .src{{font-size:12px;color:#999;margin-top:8px}}
+  .rank{{width:100%;border-collapse:collapse;font-size:14px}}
+  .rank th,.rank td{{padding:4px 6px;border-bottom:1px solid #eee;text-align:left}}
+  .rank th{{font-size:12px;color:#888;font-weight:400}}
+  .rank .num{{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}}
+  .trendrow{{display:flex;align-items:center;gap:8px;margin:6px 0}}
+  .tlabel{{width:72px;font-size:13px;color:#444;flex:none}}
+  .childg{{margin:8px 0;font-size:14px}}
+  .childg b{{display:inline-block;min-width:64px;color:#555;font-size:13px}}
+  .chain{{color:#222}}
+  .nodata{{color:#999;font-size:13px;padding:8px 0}}
   .foot{{font-size:11px;color:#aaa;margin:16px 0;line-height:1.6}}
 </style>
 </head>
@@ -105,16 +213,35 @@ TPL = """<!DOCTYPE html>
   <div class="sub">分块证据 · 各自口径 · 不合成总分</div>
   {banner}
   <div class="card">
+    <h2>四川官方流感分级（月度 · 成都=平原区）</h2>
+    {sc_body}
+  </div>
+  <div class="card">
     <h2>南方片流感趋势（周度）</h2>
     {flu_body}
   </div>
   <div class="card">
-    <h2>四川官方流感分级（月度 · 成都=平原区）</h2>
-    {sc_body}
+    <h2>本周 vs 往年同期</h2>
+    <div class="big">…</div>
+    <div class="meta"><span class="tag">待历史回补后启用</span></div>
+    <div class="src">需回补流感周报历史（约150期）后按周对比 · 当前不做多年曲线（数据不足且口径禁止混用）</div>
+  </div>
+  <div class="card">
+    <h2>全国多病原活跃度排行（周度）</h2>
+    {rank_body}
+  </div>
+  <div class="card">
+    <h2>流感 / 新冠 / RSV 趋势（周度 · 本年度）</h2>
+    {trend_body}
+  </div>
+  <div class="card">
+    <h2>儿童分龄高发前三（周度）</h2>
+    {child_body}
   </div>
   <div class="foot">
-    口径说明：流感数值为南方片哨点监测（周度，非成都市实测）；四川分级为省疾控五大区域之平原区（月度）。
-    Goldstein 指数为相对强度指数（ILI%×阳性率），非人群感染率。
+    口径说明：四川分级为省疾控平原区（月度）；流感指数为南方片哨点（周度）；多病原排行/趋势/儿童卡均为
+    全国哨点口径（非成都实测）。排序为名称非数值；箭头仅表较上周方向；Goldstein 指数为相对强度指数
+    （ILI%×阳性率），非人群感染率。
     页面生成时间：{gen} · 数据以官方发布为准。
   </div>
 </div>
@@ -153,7 +280,8 @@ def render() -> None:
     banner_html = (f'<div class="banner">⚠ {flu["banner"]}</div>'
                    if flu.get("banner") else "")
     html = TPL.format(banner=banner_html, flu_body=flu_body,
-                      sc_body=sc_body,
+                      sc_body=sc_body, rank_body=ranking_block(),
+                      trend_body=trend_block(), child_body=child_block(),
                       gen=date.today().isoformat())
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(html, encoding="utf-8")
