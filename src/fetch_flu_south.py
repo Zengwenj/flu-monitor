@@ -12,6 +12,7 @@ M2 r3 契约（.trellis/tasks/11-06-disease-monitor/design.md）：
 """
 import csv
 import re
+import shutil
 import subprocess
 import sys
 import urllib.request
@@ -20,7 +21,15 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CSV_PATH = ROOT / "data" / "flu_south.csv"
-PDFTOTEXT = r"C:/Users/zengw/anaconda3/Library/bin/pdftotext.exe"
+# pdftotext 跨平台（M4a）：Windows 优先本机 anaconda 绝对路径，兜底/非 Windows 用 PATH 中的 pdftotext
+# （GitHub Ubuntu runner 由 workflow 安装 poppler-utils 提供）。找不到则报明确错误。
+_WIN_PDFTOTEXT = r"C:/Users/zengw/anaconda3/Library/bin/pdftotext.exe"
+if sys.platform == "win32" and Path(_WIN_PDFTOTEXT).exists():
+    PDFTOTEXT = _WIN_PDFTOTEXT
+else:
+    PDFTOTEXT = shutil.which("pdftotext") or ""
+if not PDFTOTEXT:
+    raise RuntimeError("未找到 pdftotext：Windows 请确认 anaconda 路径，Linux/macOS 请安装 poppler-utils")
 LIST_URL = "https://www.chinacdc.cn/jksj/jksj04_14249/"
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 FIELDS = ["iso_year", "iso_week", "week_start", "south_ili_pct",

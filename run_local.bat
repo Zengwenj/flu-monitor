@@ -1,5 +1,7 @@
 @echo off
-rem M2 本地一键运行：抓取 -> 计算指数 -> 生成页面 -> 打开
+rem 本地一键运行：抓流感周报 -> 算指数 -> 生成页面 -> 打开（M2 起，M4a 注明行为）
+rem 行为说明：直接写 data/（权威存储）但不自动 push——要看最新就双击本文件，
+rem          要上云需手动 git push 或等云端 Actions 周五自动跑。
 cd /d "%~dp0"
 set PY=C:/Users/zengw/anaconda3/python.exe
 if not exist "%PY%" set PY=python
