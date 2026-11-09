@@ -55,11 +55,23 @@
 - 流感周报多年历史回补（约150期PDF）→ 多年同期对比曲线（替换文字差值）
 - 四川 update_sichuan 半自动脚本（抓图+打开+人工输入+写CSV+可选推送）——亦可并入 M4
 
-### M4 自动化与交付
-- **任务**：`11-06-deploy`
-- **做**：GitHub Actions 周五定时 + 自定义 Actions 部署 Pages + 本地双入口(run_local / update_sichuan 半自动) + 非开发者 README。
-- **交付**：你和家人通过链接看、每周自动更新。
-- **停靠点**："做完了"的常见终点。
+### M4 自动化与交付（拆为 M4a 本地改造 / M4b 云端首跑）
+
+> 2026-11-09 据 metis 缺口分析拆分：跨平台改造本地可验证，云端首跑依赖外部网络（境外 runner 对 chinacdc.cn 连通性=全项目最大未验证风险）+ 需用户在 GitHub 网页做一次性操作，分层各自可验收。三决策（用户 2026-11-09）：runner 不通兜底=本地抓+云端发布；四川识别=update_sichuan 纯本地输入零API；M4 拆 M4a/M4b。
+
+**M4a 跨平台改造 + 依赖标准化（本地可验，不需 GitHub 网页操作）**
+- 建 `requirements.txt`（beautifulsoup4 等）；`fetch_flu_south.py` 的 pdftotext 路径跨平台（Windows 绝对路径 + `shutil.which` 兜底）
+- `run_local.bat` 行为明确（写 data/ 不自动 push，README 说清）
+- `update_sichuan.bat`〔D19〕：纯本地交互——抓当月四川图片+自动打开+命令行输入等级(I-V)+写 sichuan_monthly.csv+可选推送，零 API 零依赖
+- `.gitattributes` 加 `data/*.csv text eol=lf`（避免跨平台行尾巨 diff）
+- 发布前核查 checklist（仓库文件逐条是否公开，脱敏个人信息）
+- **交付**：本地全链路跑通、跨平台就绪、update_sichuan 可用。**停靠点**：本地可验收，再进 M4b。
+
+**M4b 云端 Actions 首跑（需用户在 GitHub 网页操作）**
+- `.github/workflows/weekly.yml`：周五定时（cron UTC 换算，推荐 UTC02:00 周六=北京10:00 周五）+ workflow_dispatch 手动；步骤含 `apt-get install poppler-utils` + `pip install -r requirements.txt` + 连通性探测（`curl -I chinacdc.cn` 打印状态不阻断）+ 抓数(失败不阻断,兜底用仓库已有CSV) + 算指数 + 构建 + artifact 部署 Pages
+- 用户一次性网页操作：①Settings→Pages→Source 选 "GitHub Actions" ②Actions→Run workflow 首次手动触发
+- 首跑验证境外 runner 对 chinacdc.cn 连通性；不通则启用兜底（本地抓+推送，云端只构建部署）
+- **交付**：Pages 链接可访问、每周自动更新（或兜底模式）。**停靠点**："做完了"。
 
 ### M5 按需扩展（可长期不做）
 - **范围**：其他省市查询（南北片切换+黑/渝外省页，用户 2026-11-09 定留此）、支原体/细菌维度、多年同期对比曲线、界面美化。
@@ -67,4 +79,4 @@
 
 ## 当前位置
 
-M0 设计（D1-D19）、M1 可行性、M2 最小闭环均已完成并 git 提交（最新 `1aad7ea`）。当前在 **M3a 数据层**规划（metis 已分析，待出 design/implement → momus → 用户批准）。省市查询经用户 2026-11-09 定案维持 M5。
+M0 设计 / M1 可行性 / M2 最小闭环 / M3a 数据层 / M3b 展示层 均已完成、git 提交并 push 到远程（最新 af3dad9，4 子任务已归档）。当前在 **M4a 本地改造**规划（metis 已分析，待出 design/implement → momus → 用户批准）。省市查询经用户 2026-11-09 定案维持 M5。

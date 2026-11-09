@@ -1,0 +1,5 @@
+{"file": "CONTEXT.md", "reason": "D8双触发/D11公开仓库/D16-D19四川分级与半自动/D13批准后执行——M4a 须遵循"}
+{"file": ".trellis/tasks/11-06-deploy/design.md", "reason": "M4a 技术契约（pdftotext跨平台/update_sichuan纯本地/CSV行尾/发布核查）"}
+{"file": "src/fetch_flu_south.py", "reason": "M4a 唯一要改核心脚本（仅 pdftotext 路径解析段），其余解析逻辑不动"}
+{"file": "src/fetch_sentinel.py", "reason": "update_sichuan 复用其列表页抓取范式；bs4 依赖写入 requirements"}
+{"file": "data/sichuan_monthly.csv", "reason": "update_sichuan 写入须对齐的既有列头合约（GAP-8）"}
