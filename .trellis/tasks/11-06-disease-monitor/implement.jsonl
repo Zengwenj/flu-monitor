@@ -1,0 +1,4 @@
+{"file": "CONTEXT.md", "reason": "D1-D19 决策与术语口径，M2 实施须遵循（D12 CSV权威/D14 分块/D17 指数口径/D19 四川半自动）"}
+{"file": "docs/roadmap.md", "reason": "M2 里程碑范围定义与停靠点"}
+{"file": ".trellis/tasks/11-06-disease-monitor/design.md", "reason": "M2 r2 技术契约（数据 schema/状态文案枚举/接口闭合）"}
+{"file": ".trellis/tasks/11-06-data-feasibility/research/feasibility-report.md", "reason": "M1 实测事实（PDF两跳/pdftotext路径/四川10月IV级/W44基准值）"}
