@@ -22,6 +22,6 @@ echo [4/5] 计算指数...
 "%PY%" -X utf8 src\compute_index.py
 
 echo [5/5] 生成页面...
-"%PY%" -X utf8 src\build_site.py
+"%PY%" -X utf8 src\build_site.py --local
 
 start "" "site\index.html"

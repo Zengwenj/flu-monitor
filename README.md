@@ -25,7 +25,8 @@
 1. **看**：打开上面的网址，或双击 `run_local.bat` 看本地版。
 2. **每月一次 · 更新四川分级**：双击 `update_sichuan.bat` → 自动抓当月四川"流感指数"文章并打开成都（平原区）仪表盘图 → 你按图输入等级（I/II/III/IV/V）→ 自动写入并询问是否推送到 GitHub（y 推送 / n 稍后手动 `git push`）。
 3. **想立刻云端更新**：GitHub 仓库 → Actions → "Weekly data update" → Run workflow（手动触发一次）。
-4. **本地补抓**：双击 `run_local.bat`（抓三源→算指数→生成页面；不自动 push，需手动 `git push` 上云）。
+4. **本地补抓**：双击 `run_local.bat`（抓三源→算指数→生成页面；不自动 push）。
+   要上云时：**先 `git pull`（云端每周会自动提交数据，不同步会推送失败）**，再 `git push`。
 
 ## 首次配置（换电脑或重建仓库时才需要）
 

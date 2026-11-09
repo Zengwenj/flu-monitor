@@ -22,11 +22,13 @@ RUN_STATUS = ROOT / "data" / "run_status.json"
 OUT = ROOT / "site" / "index.html"
 
 
-def run_banner() -> str:
+def run_banner(local: bool = False) -> str:
     """M4b/momus B1：读本次运行状态——chinacdc 源本次 skipped/failed 时显诚实横幅，
-    避免"旧数据被标数据正常"。本地 run_local 无 run_status.json → 不显。"""
+    避免"旧数据被标数据正常"。
+    本地模式（--local）忽略该文件：bot 回写会把云端上一轮状态带回仓库，
+    本地构建若读它会误报/漏报（trellis-check 中等项）。"""
     import json
-    if not RUN_STATUS.exists():
+    if local or not RUN_STATUS.exists():
         return ""
     try:
         st = json.loads(RUN_STATUS.read_text(encoding="utf-8"))
@@ -301,7 +303,8 @@ def render() -> None:
 
     banner_html = (f'<div class="banner">⚠ {flu["banner"]}</div>'
                    if flu.get("banner") else "")
-    html = TPL.format(run_banner=run_banner(), banner=banner_html, flu_body=flu_body,
+    html = TPL.format(run_banner=run_banner(local="--local" in sys.argv),
+                      banner=banner_html, flu_body=flu_body,
                       sc_body=sc_body, rank_body=ranking_block(),
                       trend_body=trend_block(), child_body=child_block(),
                       gen=date.today().isoformat())
