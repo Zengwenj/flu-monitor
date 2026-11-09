@@ -17,8 +17,8 @@
 
 | 数据源 | 我们的使用方式 | 官方条款现状 | 结论 |
 |---|---|---|---|
-| 中疾控哨点周报/流感周报（chinacdc.cn） | 抓取公开网页数值→CSV→展示（保留原文出处链接）；站内无 robots.txt、未见版权/再分发声明页 | 政府信息公开语境；无明确禁止，也无明确再分发授权 | ⚠️低风险展示+**每处保留官方出处链接**（页面已做）；❓M4b 前建议在周报页找一次版权声明 |
-| WHO FluNet（xmart API） | 匿名下载 CSV→筛中国行→展示；官方声明"country level data publicly available, updated weekly" | WHO 开放数据通常为 CC BY-NC-SA 类许可 | ⚠️展示+注明"来源：WHO FluNet"；❓具体许可版本 M4b 前在 who.int/tools/flunet 页面核一次 |
+| 中疾控哨点周报/流感周报（chinacdc.cn） | 抓取公开网页数值→CSV→展示（保留原文出处链接）；非原文转载，属数据引用+二次加工 | **已核**（2026-11-09）[版权与免责声明](https://www.chinacdc.cn/mzsm/202410/t20241028_302192.html)："凡本网站注明'稿件来源：中国疾病预防控制中心'的所有文字、图片…版权均属中国疾病预防控制中心所有，任何媒体、网站或个人未经本网站协议授权转载…使用时必须注明'稿件来源：中国疾病预防控制中心'" | ✅可公开：页面已标来源+链接；**并在脚注显式加"稿件来源：中国疾病预防控制中心"字样**以完全对齐 |
+| WHO FluNet（xmart API） | 匿名下载 CSV→筛中国行→展示 | **已核**（2026-11-09）[flunet 页](https://www.who.int/tools/flunet)："The data at country level are publically available and updated weekly."，© 2026 WHO；具体 Data policy/Permissions 页未展开 | ✅可公开：country level 数据官方声明公开，页面注明"来源：WHO FluNet" |
 | 四川省疾控流感指数（sccdc.cn） | **仅录等级文字结论（I-V 级事实）**；原始仪表盘图片只存本地 .tmp_sichuan（不上仓库、不上网页） | 图片未上传=无图片再分发问题；等级是事实数据 | ✅可公开（等级文字+出处链接） |
 
 ## 三、汇总

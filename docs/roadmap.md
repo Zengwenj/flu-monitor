@@ -68,9 +68,15 @@
 - **交付**：本地全链路跑通、跨平台就绪、update_sichuan 可用。**停靠点**：本地可验收，再进 M4b。
 
 **M4b 云端 Actions 首跑（需用户在 GitHub 网页操作）**
-- `.github/workflows/weekly.yml`：周五定时（cron UTC 换算，推荐 UTC02:00 周六=北京10:00 周五）+ workflow_dispatch 手动；步骤含 `apt-get install poppler-utils` + `pip install -r requirements.txt` + 连通性探测（`curl -I chinacdc.cn` 打印状态不阻断）+ 抓数(失败不阻断,兜底用仓库已有CSV) + 算指数 + 构建 + artifact 部署 Pages
-- 用户一次性网页操作：①Settings→Pages→Source 选 "GitHub Actions" ②Actions→Run workflow 首次手动触发
-- 首跑验证境外 runner 对 chinacdc.cn 连通性；不通则启用兜底（本地抓+推送，云端只构建部署）
+
+> 2026-11-09 据 metis 分析 + 用户三决策定形：commit data 回仓库（github-actions bot，on 只 schedule+dispatch 防循环）；run_local 扩为三源（兜底完整）；site/ 加 .gitignore（走 artifact 不进 git）。
+
+- `.github/workflows/weekly.yml`：**cron `0 2 * * 5`**（UTC 周五 02:00 = 北京周五 10:00；修正此前笔误）+ workflow_dispatch 手动。步骤：`apt-get install -y poppler-utils` + `pip install -r requirements.txt` + 连通性探测（`curl -I chinacdc.cn` → 输出 `CHINACDC_REACHABLE=true/false` 显式标志，不阻断）+ 抓三源（据标志决定跳过与否，失败用仓库已有 CSV 兜底）+ 算指数 + 构建 + commit data/*.csv 回仓库（bot 身份）+ artifact 部署 Pages。FluNet step 设 `timeout-minutes: 15` + continue-on-error。permissions: `contents: write` + `pages: write` + `id-token: write`。
+- **前置**：先 push M4a 的提交（requirements.txt/脚本等须在远程 runner 才拿得到）。
+- 用户一次性网页操作（顺序不可颠倒）：①push weekly.yml 后，Settings→Pages→Source 选 "GitHub Actions"（此时网页才出现该选项）②Actions→Run workflow 首次手动触发。
+- README（非开发者）：看链接/本地双击/手动触发/每月 update_sichuan + 首次 Pages 启用 + 首跑两种结果各做什么。
+- publish-checklist 两个❓（中疾控版权/WHO 许可）作为 push 前 gate 核掉记录。
+- **首跑两结果**：通→三源 CSV 写新行、Pages 显最新；不通→连通性标志 false、抓取跳过、用仓库已有 CSV 构建（页面显"获取失败横幅"）、Pages 仍部署，用户后续每周本地 run_local+推送，云端仅保活构建部署。
 - **交付**：Pages 链接可访问、每周自动更新（或兜底模式）。**停靠点**："做完了"。
 
 ### M5 按需扩展（可长期不做）
@@ -79,4 +85,4 @@
 
 ## 当前位置
 
-M0 设计 / M1 可行性 / M2 最小闭环 / M3a 数据层 / M3b 展示层 均已完成、git 提交并 push 到远程（最新 af3dad9，4 子任务已归档）。当前在 **M4a 本地改造**规划（metis 已分析，待出 design/implement → momus → 用户批准）。省市查询经用户 2026-11-09 定案维持 M5。
+M0 设计 / M1 可行性 / M2 最小闭环 / M3a 数据层 / M3b 展示层 / M4a 本地改造 均已完成并 git 提交（M3b 及以前已 push 到 af3dad9；M4a 的 64c9841+413ab96 待 push）。当前在 **M4b 云端首跑**规划（metis 已分析+用户三决策，待出 design/implement → momus → 用户批准）。省市查询经用户 2026-11-09 定案维持 M5。
