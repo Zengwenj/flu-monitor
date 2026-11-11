@@ -18,3 +18,120 @@
 2026-11-09T10:41:19	2025W20	ranks	版式差异	合并版(月度)，表2/3归属周次语义不明不入库
 2026-11-09T10:41:19	2025W21	ranks	版式差异	合并版(月度)，表2/3归属周次语义不明不入库
 2026-11-09T10:41:19	2025W22	ranks	版式差异	合并版(月度)，表2/3归属周次语义不明不入库
+2026-11-11T12:12:32	2023W32	backfill_fail	parse_error	parse_error: 未解析到南方流感阳性分子
+2026-11-11T12:47:11	2024W26	issue_no_warn	锚文本第811期	PDF内第810期（数据照常入库）
+2026-11-11T13:01:03	2024W45	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202411/P020260123349887847943.pdf
+2026-11-11T13:01:03	2024W46	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202411/t20241121_302746.htm
+2026-11-11T13:01:03	2024W47	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202411/t20241129_302972.htm
+2026-11-11T13:01:03	2024W48	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202412/t20241205_303122.htm
+2026-11-11T13:01:03	2024W49	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202412/t20241212_303269.htm
+2026-11-11T13:01:03	2024W50	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202412/t20241218_303399.htm
+2026-11-11T13:01:03	2024W51	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202412/t20241226_303531.htm
+2026-11-11T13:01:03	2024W52	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202501/t20250102_303647.htm
+2026-11-11T13:01:03	2025W1	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202501/t20250109_303775.htm
+2026-11-11T13:01:03	2025W2	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202501/t20250116_303896.htm
+2026-11-11T13:01:03	2025W3	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202501/t20250122_304010.htm
+2026-11-11T13:01:03	2025W4	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202501/t20250130_304129.htm
+2026-11-11T13:01:03	2025W5	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202502/t20250206_304165.htm
+2026-11-11T13:01:03	2025W6	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202502/t20250213_304234.htm
+2026-11-11T13:01:03	2025W7	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202502/t20250220_304407.htm
+2026-11-11T13:01:03	2025W8	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202502/t20250226_304583.htm
+2026-11-11T13:01:03	2025W9	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202503/t20250305_304678.htm
+2026-11-11T13:01:03	2025W10	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202503/t20250313_304916.htm
+2026-11-11T13:01:03	2025W11	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202503/t20250320_305125.htm
+2026-11-11T13:01:03	2025W12	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202503/t20250327_305500.htm
+2026-11-11T13:01:03	2025W13	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202504/t20250403_305689.htm
+2026-11-11T13:01:03	2025W14	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202504/t20250410_305859.htm
+2026-11-11T13:01:03	2025W15	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202504/t20250418_306037.htm
+2026-11-11T13:01:03	2025W16	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202504/t20250425_306206.htm
+2026-11-11T13:01:03	2025W17	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202505/t20250502_306451.htm
+2026-11-11T13:01:03	2025W18	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202505/t20250509_306653.htm
+2026-11-11T13:01:03	2025W19	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202505/t20250515_306816.htm
+2026-11-11T13:01:04	2025W20	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202505/t20250523_306985.htm
+2026-11-11T13:01:04	2025W21	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202505/t20250529_307142.htm
+2026-11-11T13:01:04	2025W22	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202506/t20250605_307358.htm
+2026-11-11T13:01:04	2025W23	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202506/t20250612_307592.htm
+2026-11-11T13:01:04	2025W24	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202506/t20250619_307870.htm
+2026-11-11T13:01:04	2025W25	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202506/t20250626_307991.htm
+2026-11-11T13:01:04	2025W26	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202507/t20250703_308178.htm
+2026-11-11T13:01:04	2025W27	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202507/t20250710_308287.htm
+2026-11-11T13:01:04	2025W28	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202507/t20250717_308528.htm
+2026-11-11T13:01:04	2025W29	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202507/t20250724_308908.htm
+2026-11-11T13:01:04	2025W30	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202507/t20250731_309106.htm
+2026-11-11T13:01:04	2025W31	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202508/t20250807_309207.htm
+2026-11-11T13:01:04	2025W32	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202508/t20250814_309351.htm
+2026-11-11T13:01:04	2025W33	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202508/t20250821_309677.htm
+2026-11-11T13:01:04	2025W34	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202508/t20250828_310015.htm
+2026-11-11T13:01:04	2025W35	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202509/t20250904_310195.htm
+2026-11-11T13:01:04	2025W36	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202509/t20250911_310378.htm
+2026-11-11T13:01:04	2025W37	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202509/t20250919_311548.htm
+2026-11-11T13:01:04	2025W38	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202509/t20250926_312671.htm
+2026-11-11T13:01:04	2025W39	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202510/t20251004_312842.htm
+2026-11-11T13:01:04	2025W40	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202510/t20251010_312889.htm
+2026-11-11T13:01:04	2025W41	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202510/t20251017_312997.htm
+2026-11-11T13:01:04	2025W42	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202510/t20251024_313102.htm
+2026-11-11T13:01:04	2025W43	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202510/t20251030_313187.htm
+2026-11-11T13:01:04	2025W44	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202511/t20251106_313320.htm
+2026-11-11T13:01:04	2025W45	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202511/t20251113_313466.htm
+2026-11-11T13:01:04	2025W46	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202511/t20251120_313601.htm
+2026-11-11T13:01:04	2025W47	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202511/t20251127_313694.htm
+2026-11-11T13:01:04	2025W48	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202512/t20251203_313842.htm
+2026-11-11T13:01:04	2025W49	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202512/t20251211_314074.htm
+2026-11-11T13:01:04	2025W50	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202512/t20251218_314158.htm
+2026-11-11T13:01:05	2025W51	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202512/t20251225_314261.htm
+2026-11-11T13:01:05	2025W52	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202512/t20251231_314371.htm
+2026-11-11T13:01:05	2026W1	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202601/t20260108_314529.htm
+2026-11-11T13:01:05	2026W2	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202601/t20260115_314639.htm
+2026-11-11T13:01:05	2026W3	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202601/t20260122_314767.htm
+2026-11-11T13:01:05	2026W4	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202601/t20260130_314860.htm
+2026-11-11T13:01:05	2026W5	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202602/t20260205_314949.htm
+2026-11-11T13:01:05	2026W6	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202602/t20260213_315071.htm
+2026-11-11T13:01:05	2026W7	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202602/t20260220_315151.htm
+2026-11-11T13:01:05	2026W8	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202602/t20260227_315210.htm
+2026-11-11T13:01:05	2026W9	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202603/t20260306_315295.htm
+2026-11-11T13:01:05	2026W10	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202603/t20260313_315442.htm
+2026-11-11T13:01:05	2026W11	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202603/t20260319_315643.htm
+2026-11-11T13:01:05	2026W12	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202603/t20260327_315993.htm
+2026-11-11T13:01:05	2026W13	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202604/t20260402_316121.htm
+2026-11-11T13:01:05	2026W14	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202604/t20260409_316236.htm
+2026-11-11T13:01:05	2026W15	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202604/t20260416_1835083.htm
+2026-11-11T13:01:05	2026W16	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202604/t20260424_1835303.htm
+2026-11-11T13:01:05	2026W17	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202604/t20260430_1835480.htm
+2026-11-11T13:01:05	2026W18	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202605/t20260508_1835624.htm
+2026-11-11T13:01:05	2026W19	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202605/t20260514_1835775.htm
+2026-11-11T13:01:05	2026W20	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202605/t20260521_1835980.htm
+2026-11-11T13:01:05	2026W21	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202605/t20260528_1836114.htm
+2026-11-11T13:01:05	2026W22	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202606/t20260604_1836505.htm
+2026-11-11T13:01:05	2026W23	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202606/t20260611_1836725.htm
+2026-11-11T13:01:05	2026W24	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202606/t20260618_1837077.htm
+2026-11-11T13:01:05	2026W25	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202606/t20260625_1837446.htm
+2026-11-11T13:01:05	2026W26	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202607/t20260703_1837766.htm
+2026-11-11T13:01:05	2026W27	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202607/t20260709_1838005.htm
+2026-11-11T13:01:05	2026W28	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202607/t20260717_1838227.htm
+2026-11-11T13:01:05	2026W29	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202607/t20260724_1838369.htm
+2026-11-11T13:01:05	2026W30	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202607/t20260731_1838517.htm
+2026-11-11T13:01:06	2026W31	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202608/t20260807_1838843.htm
+2026-11-11T13:01:06	2026W32	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202608/t20260813_1838934.htm
+2026-11-11T13:01:06	2026W33	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202608/t20260821_1839077.htm
+2026-11-11T13:01:06	2026W34	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202608/t20260827_1839553.htm
+2026-11-11T13:01:06	2026W35	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202609/t20260903_1839795.htm
+2026-11-11T13:01:06	2026W36	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202609/t20260911_1840079.htm
+2026-11-11T13:01:06	2026W37	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202609/t20260918_1840292.htm
+2026-11-11T13:01:06	2026W38	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202609/t20260924_1841790.htm
+2026-11-11T13:01:06	2026W39	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202610/t20261002_1842068.htm
+2026-11-11T13:01:06	2026W40	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202610/t20261009_1842125.htm
+2026-11-11T13:01:06	2026W41	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202610/t20261015_1842284.htm
+2026-11-11T13:01:06	2026W42	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202610/t20261023_1842431.htm
+2026-11-11T13:01:06	2026W43	backfill_fail	http_error	HTTP 获取失败: https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202610/t20261030_1842571.htm
+2026-11-11T13:51:17	2025W33	backfill_fail	parse_error	parse_error: 表 1 列校验失败 南方10043+北方2995≠合计13029
+2026-11-11T14:07:50	2025W33	backfill_fail	parse_error	parse_error: 表 1 列校验失败 南方10043+北方2995≠合计13029
+2026-11-11T14:28:56	2025W33	backfill_fail	parse_error	parse_error: 表 1 列校验失败 南方10043+北方2995≠合计13029
+2026-11-11T14:30:06	2026W11	backfill_fail	merged_issue	merged_issue: PDF 内出现多个期号 [895, 900]
+2026-11-11T14:55:06	2025W33	backfill_fail	parse_error	parse_error: 表 1 列校验失败 南方10043+北方2995≠合计13029
+2026-11-11T14:55:06	2026W11	backfill_fail	merged_issue	merged_issue: PDF 内出现多个期号 [895, 900]
+2026-11-11T15:19:52	2025W33	backfill_fail	parse_error	parse_error: 表 1 列校验失败 南方10043+北方2995≠合计13029
+2026-11-11T15:19:52	2026W11	backfill_fail	merged_issue	merged_issue: PDF 内出现多个期号 [895, 900]
+2026-11-11T15:28:36	2025W33	backfill_fail	parse_error	parse_error: 表 1 列校验失败 南方10043+北方2995≠合计13029
+2026-11-11T15:28:36	2026W11	backfill_fail	merged_issue	merged_issue: PDF 内出现多个期号 [895, 900]
+2026-11-11T15:34:17	2025W33	table_sum_check	南方10043+北方2995≠合计13029（偏差≤0.2%，按上游笔误照存）	
+2026-11-11T15:34:17	2026W11	cover_leftover_issue	主期号第900期×10，封面残留期号 {895: 1}（照存）	
