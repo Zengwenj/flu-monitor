@@ -54,7 +54,7 @@
     ".zcode/hooks/inject-workflow-state.py": "71ef1aa1ed1051a697cae3c9ebffa518958a3bbd4d147434f382348829915f8c",
     ".zcode/hooks/session-start.py": "e6fe97ea392cb3cf150f5924dda3b2209d77c35578d6e45cb14c4877a502e010",
     ".zcode/config.json": "11bf404a860f6a2a0b6f9ae952f1b5bd1b21ba5070da062f25c6c43209e8427a",
-    "AGENTS.md": "6cacfe99748b435d0660c2463c697bc323d53798aecf3492283ca8eac1b29682",
+    "AGENTS.md": "6465b39299fe72aeb3283590ff0e86ff4c83e90ee5fb059ca4bffddab5df9bb2",
     ".trellis/agents/check.md": "edb4f57361407249a53bf5998ebf91c40d2b969e826a2c5e1b4e813a08bcb175",
     ".trellis/agents/implement.md": "66e25ad046c94869442834bc3cdfbd5a9a7412d3ff54561d64d2886552c27e87",
     ".trellis/config.yaml": "a966e6d374e9e6ff283cf761ccd99631323ee1754856cef51ad154ca0afb9dfa",

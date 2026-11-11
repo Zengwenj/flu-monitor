@@ -1,0 +1,7 @@
+{"file": ".trellis/tasks/11-11-flu-south-backfill/implement.md", "reason": "S1-S6 验收基准与有序步骤，逐条核对"}
+{"file": ".trellis/tasks/11-11-flu-south-backfill/design.md", "reason": "核对是否遵守：分母取自表1南方列、失败不写CSV、行序归一、不改build_site"}
+{"file": ".trellis/tasks/11-11-flu-south-backfill/research/gap-analysis.md", "reason": "七期基准阳性率与覆盖对账表，逐值比对"}
+{"file": "CONTEXT.md", "reason": "D12 CSV权威+changes.log留痕、D17 不混全国FluNet、D14 不合成总分"}
+{"file": "data/flu_south.csv", "reason": "产物核对：主键唯一、按周升序、只含ok、数值域[0,100]、goldstein=ILI%×阳性率"}
+{"file": "src/fetch_flu_south.py", "reason": "核对分母修复与新增守卫未破坏单期/抽验模式"}
+{"file": "docs/handoff.md", "reason": "§4 红线与§9 不要做的事，交付前对照"}

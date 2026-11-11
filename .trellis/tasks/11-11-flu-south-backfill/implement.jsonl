@@ -1,0 +1,7 @@
+{"file": "CONTEXT.md", "reason": "D7 首次一次性回补、D12 CSV权威+changes.log留痕、D17 南方片基线不混全国FluNet；:71 不采纳永不重抓"}
+{"file": ".trellis/tasks/11-11-flu-south-backfill/design.md", "reason": "本次契约：分母修复规则、枚举源(ivdc)、写入守卫、CLI、验收基准"}
+{"file": ".trellis/tasks/11-11-flu-south-backfill/research/gap-analysis.md", "reason": "实测基准值表(七期阳性率)、覆盖对账(600条/2016-2026)、GAP-1~GAP-7"}
+{"file": "src/fetch_flu_south.py", "reason": "被改文件：parse_issue 分母(:118)、upsert 行序(:163-166)、__main__ 参数分支(:202)"}
+{"file": "src/fetch_sentinel.py", "reason": "--backfill 范式(index_N、404=终点、限速2.5s :32)与 log_change 格式(:271-274)、失败只打印不写行(:353-354)"}
+{"file": "src/build_site.py", "reason": "只读约束：:69-80 横幅判定(故失败不写CSV)、:81-85 环比prev[-1:]、:88/:246-251 同期占位属A1b"}
+{"file": "docs/handoff.md", "reason": "§4 约束红线、§6 已知坑(pdftotext跨平台/--local/push先pull)、§7 工作流门"}
