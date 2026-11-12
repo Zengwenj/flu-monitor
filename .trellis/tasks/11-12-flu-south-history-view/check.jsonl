@@ -1,0 +1,5 @@
+{"file":"CONTEXT.md","reason":"同地区同口径、缺数据不补零、环比仅较上周"}
+{"file":".trellis/tasks/11-12-flu-south-history-view/prd.md","reason":"逐项核对批准范围及验收"}
+{"file":".trellis/tasks/11-12-flu-south-history-view/design.md","reason":"数值异常、重复、ISO周及视觉契约"}
+{"file":".trellis/tasks/11-12-flu-south-history-view/implement.md","reason":"验证矩阵、基线证据与停止条件"}
+{"file":".trellis/tasks/11-12-flu-south-history-view/research/gap-analysis.md","reason":"避免重引入已知环比与共享helper缺陷"}

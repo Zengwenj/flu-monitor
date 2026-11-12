@@ -1,0 +1,5 @@
+{"file":"CONTEXT.md","reason":"D12 D14 D15 D17 数据口径及展示红线"}
+{"file":".trellis/tasks/11-12-flu-south-history-view/prd.md","reason":"授权边界与验收目标"}
+{"file":".trellis/tasks/11-12-flu-south-history-view/design.md","reason":"共享数据视图、ISO环比和designer视觉规格"}
+{"file":".trellis/tasks/11-12-flu-south-history-view/implement.md","reason":"串行写域、可复现验证与批准门"}
+{"file":".trellis/tasks/11-12-flu-south-history-view/research/gap-analysis.md","reason":"已核实边界缺口及取舍"}

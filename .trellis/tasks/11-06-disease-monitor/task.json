@@ -24,7 +24,8 @@
     "11-06-build-site",
     "11-06-deploy",
     "11-06-data-feasibility",
-    "11-11-flu-south-backfill"
+    "11-11-flu-south-backfill",
+    "11-12-flu-south-history-view"
   ],
   "parent": null,
   "relatedFiles": [],
