@@ -16,3 +16,4 @@ __pycache__/
 
 # 渲染产物：由 Pages artifact 部署，不进 git 历史（M4b）
 site/
+site_publish/

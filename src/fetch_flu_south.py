@@ -17,8 +17,19 @@ A1a 契约（.trellis/tasks/11-11-flu-south-backfill/design.md）：
   python -X utf8 src/fetch_flu_south.py <文章URL>  # 抽验模式：只解析打印，不写 CSV（用于跨年格式抽验）
   python -X utf8 src/fetch_flu_south.py --backfill [--from 2023W1] [--to 2026W44]
                                                    [--force] [--limit N]  # 历史回补
+  python -X utf8 src/fetch_flu_south.py --regions south,north --result-file p.json --run-id id
+
+A2 契约（.trellis/tasks/11-12-regional-monitor/design.md §3.1）：
+- parse_issue 带 region 显式参数（south 默认，签名兼容）；north 从同一 PDF 表 1 北方列取分母，
+  分子/ILI 匹配允许字间与换行空白；南方行为与 A1a 逐字节回归不变
+- --regions south,north 显式批量模式：下载与 pdftotext 一次，两区分独立校验写入、独立失败
+  （北方缺 ILI/分母非法不阻断南方；共同文档身份错误双方失败）
+- --result-file/--run-id：把本轮各源状态（flu_south/flu_north）写成 JSON 结果文件
+- 权威 CSV 写入统一走 src/data_io.py 原子助手（.tmp_writes/ 暂存）
 """
 import csv
+import hashlib
+import json
 import os
 import re
 import shutil
@@ -30,6 +41,8 @@ from collections import Counter
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from urllib.parse import urljoin
+
+import data_io
 
 ROOT = Path(__file__).resolve().parents[1]
 CSV_PATH = ROOT / "data" / "flu_south.csv"
@@ -56,6 +69,17 @@ UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.3
 FIELDS = ["iso_year", "iso_week", "week_start", "south_ili_pct",
           "south_flu_positive_pct", "goldstein_index", "source_url",
           "source_pubdate", "fetched_at", "status"]
+NORTH_CSV = ROOT / "data" / "flu_north.csv"
+NORTH_FIELDS = ["iso_year", "iso_week", "week_start", "north_ili_pct",
+                "north_flu_positive_pct", "goldstein_index", "source_url",
+                "source_pubdate", "fetched_at", "status"]
+# A2 区域注册表：region → 权威 CSV / 字段 / 数值列名（goldstein_index 列名各表相同）
+REGIONS = {
+    "south": {"csv": CSV_PATH, "fields": FIELDS,
+              "ili": "south_ili_pct", "pos": "south_flu_positive_pct"},
+    "north": {"csv": NORTH_CSV, "fields": NORTH_FIELDS,
+              "ili": "north_ili_pct", "pos": "north_flu_positive_pct"},
+}
 
 
 def http_get(url: str) -> bytes:
@@ -115,18 +139,28 @@ def pdf_to_text(pdf_bytes: bytes) -> str:
         return out.read_text(encoding="utf-8")  # G7: 显式 utf-8
 
 
-def parse_issue(txt: str, title: str = "") -> tuple:
-    """解析南方片 ILI%、流感阳性率、周次与周起始日。返回 (行字典, 告警列表)。
+def parse_issue(txt: str, title: str = "", region: str = "south") -> tuple:
+    """解析南/北方片 ILI%、流感阳性率、周次与周起始日。返回 (行字典, 告警列表)。
 
-    A1a 解析契约（design §2/§3.3）：
-    - 分母一律取表 1「检测数 南方省份」列；表 1 缺失或列自洽性（南方+北方=合计）失败 → 判失败，
+    A1a 解析契约（design §2/§3.3，south 行为与 A1a 逐字节回归不变）：
+    - 分母一律取表 1「检测数」对应区域列；表 1 缺失或列自洽性（南方+北方=合计）失败 → 判失败，
       绝不回退全国合计（旧 bug：阳性率被稀释 21%–50%）
     - 括号版式（官方百分比）与表 1 分母互校，相对偏差 > 1.5% → bracket_mismatch 判失败
     - 标题（列表条目，如「2026 第44周」）与 PDF 内年/周不一致 → issue_mismatch 判失败
     - PDF 内出现 ≥2 个不同期号 → merged_issue 判失败（实测正常期全篇只用一个期号）
     - 合并版范围式周次只看标题/锚文本，绝不做 PDF 正文范围匹配（13/27 正常期正文含累计区间）
     - 数值域 [0,100] 越界判失败；week_start 与 ISO 周一不一致照存解析值、仅告警
+
+    A2 扩展（design §3.1）：
+    - region 显式参数；north 取表 1 北方列分母，分子/ILI 匹配允许字间与换行空白
+    - 列合计检验先防总数 <=0 再用 0.2% 容差；各区分母>0、0<=阳性数<=分母
+    - 返回行的数值键名随区域（south_ili_pct/south_flu_positive_pct 或 north_*）
     """
+    if region not in REGIONS:
+        raise RuntimeError(f"parse_error: 未知区域 {region}")
+    rname = "南方" if region == "south" else "北方"
+    ili_field = REGIONS[region]["ili"]
+    pos_field = REGIONS[region]["pos"]
     warns = []
     week = re.search(r"(\d{4})\s*年\s*第\s*(\d+)\s*周(?:\s*第\s*(\d+)\s*期)?", txt)
     if not week:
@@ -138,11 +172,15 @@ def parse_issue(txt: str, title: str = "") -> tuple:
         r"南方省份\s+北方省份\s+合计[\s\S]{0,40}?检测数\s+(\d[\d,]*)\s+(\d[\d,]*)\s+(\d[\d,]*)", txt)
     if not m_tab:
         raise RuntimeError("parse_error: 表 1（检测数分省表）缺失，无法取南方分母")
+    den_cols = {"south": 1, "north": 2}
+    den_all = int(m_tab.group(3).replace(",", ""))
+    den_r = int(m_tab.group(den_cols[region]).replace(",", ""))
+    if den_r <= 0:
+        raise RuntimeError(f"parse_error: 表 1 {rname}检测数 {den_r} 非正数")
+    if den_all <= 0:
+        raise RuntimeError(f"parse_error: 表 1 合计 {den_all} 非正数，列校验无法执行")
     den_s = int(m_tab.group(1).replace(",", ""))
     den_n = int(m_tab.group(2).replace(",", ""))
-    den_all = int(m_tab.group(3).replace(",", ""))
-    if den_s <= 0:
-        raise RuntimeError(f"parse_error: 表 1 南方检测数 {den_s} 非正数")
     if den_s + den_n != den_all:
         # 2025W33 实测：上游把合计印错（南方 10043+北方 2995=13038，表印合计 13029，差 9≈0.07%），
         # 南方列本身有官方括号佐证（189(1.9%)）。列错位/错抓会产生百分之几级偏差；
@@ -174,32 +212,49 @@ def parse_issue(txt: str, title: str = "") -> tuple:
             raise RuntimeError(
                 f"issue_mismatch: 标题「{title.strip()}」与 PDF 内 {iso_year}W{iso_week} 不一致")
 
-    m_ili = re.search(r"南方省份哨点医院报告的\s*ILI%\s*为\s*([\d.]+)\s*%", txt)
+    m_ili = re.search(rf"{rname}省份哨点医院报告的\s*ILI%\s*为\s*([\d.]+)\s*%", txt)
+    if not m_ili and region == "north":
+        # 北方 ILI 允许字间空白（2023W32 实测 pdftotext 把正文排成「北 方 省 份 …」）；
+        # 南方正则保持原样（A1a 逐字节回归）。
+        m_ili = re.search(r"北方省份哨点医院报告的ILI%为([\d.]+)%",
+                          re.sub(r"[ \t\u3000]+", "", txt))
     if not m_ili:
-        raise RuntimeError("parse_error: 未解析到南方 ILI%")
+        raise RuntimeError(f"parse_error: 未解析到{rname} ILI%")
 
     # 阳性率两种版式（G2 跨年抽验发现）：
     # 2026 式：南方省份检测到 1796(17.14%)份流感病毒阳性标本  -> 官方括号百分比，与表 1 分母互校
-    # 2025 式：南方省份检测到 75 份流感病毒阳性标本（无百分比）-> 分子 ÷ 表 1 南方列自算
+    # 2025 式：南方省份检测到 75 份流感病毒阳性标本（无百分比）-> 分子 ÷ 表 1 对应区域列自算
     # 2023W32 上游漏字：「南方省份检测到 181 流感病毒阳性标本」——数字与「流感病毒阳性」之间没有「份」，
     # 故分子正则里的「份」必须可选（该期 181/4977=3.64%，与 W31 2.52%/W33 3.82% 邻期一致）。
-    m_pos = re.search(r"南方省份检测到\s*([\d,]+)\s*\(([\d.]+)%\)", txt)
+    # north 分子/括号匹配与 south 同形；\s* 覆盖字间与换行空白（design §3.1）。
+    m_pos = re.search(rf"{rname}省份检测到\s*([\d,]+)\s*\(([\d.]+)%\)", txt)
     if m_pos:
         num = int(m_pos.group(1).replace(",", ""))
         pos = m_pos.group(2)
-        calc = num / den_s * 100
+        if num > den_r:
+            raise RuntimeError(
+                f"parse_error: 阳性数 {num} > {rname}分母 {den_r}（列错位或错抓）")
+        calc = num / den_r * 100
         # 分母用 max() 防 0% 零除（括号 0% 且分子 0 时 calc=0 → 偏差 0，正常互校通过）
         if abs(calc - float(pos)) / max(float(pos), 1e-9) > 0.015:
             raise RuntimeError(
-                f"bracket_mismatch: 官方括号 {pos}% 与 {num}/{den_s}={calc:.2f}% 偏差超 1.5%")
-        pos_src = f"官方括号（互校 {num}/{den_s}={calc:.2f}%）"
+                f"bracket_mismatch: 官方括号 {pos}% 与 {num}/{den_r}={calc:.2f}% 偏差超 1.5%")
+        pos_src = f"官方括号（互校 {num}/{den_r}={calc:.2f}%）"
     else:
-        m_num = re.search(r"南方省份检测到\s*([\d,]+)\s*份?\s*流感病毒阳性", txt)
+        m_num = re.search(rf"{rname}省份检测到\s*([\d,]+)\s*份?\s*流感病毒阳性", txt)
+        if not m_num and region == "north":
+            # 2023W32 实测：pdftotext 把北方分子句排成「北 方 省 份 检 测 到 12 份 …」
+            # （南方句同页正常）。仅对北方做行内去空白兜底；南方保持 A1a 原逻辑。
+            m_num = re.search(r"北方省份检测到([\d,]+)份?流感病毒阳性",
+                              re.sub(r"[ \t\u3000]+", "", txt))
         if not m_num:
-            raise RuntimeError("parse_error: 未解析到南方流感阳性分子")
+            raise RuntimeError(f"parse_error: 未解析到{rname}流感阳性分子")
         num = int(m_num.group(1).replace(",", ""))
-        pos = f"{num / den_s * 100:.2f}"
-        pos_src = f"自算 {num}/{den_s}（表1南方列）"
+        if num > den_r:
+            raise RuntimeError(
+                f"parse_error: 阳性数 {num} > {rname}分母 {den_r}（列错位或错抓）")
+        pos = f"{num / den_r * 100:.2f}"
+        pos_src = f"自算 {num}/{den_r}（表1{rname}列）"
     print(f"[解析] 阳性率来源: {pos_src}")
 
     # 数值域
@@ -226,59 +281,67 @@ def parse_issue(txt: str, title: str = "") -> tuple:
             warns.append(f"week_start_check: 解析值 {week_start} ≠ ISO 周一 {iso_mon}")
 
     return ({"iso_year": iso_year, "iso_week": iso_week, "week_start": week_start,
-             "south_ili_pct": m_ili.group(1), "south_flu_positive_pct": pos}, warns)
+             ili_field: m_ili.group(1), pos_field: pos}, warns)
 
 
-def load_rows() -> list:
-    if not CSV_PATH.exists():
+def load_rows(path: Path = None) -> list:
+    path = path or CSV_PATH
+    if not path.exists():
         return []
-    with CSV_PATH.open(encoding="utf-8-sig", newline="") as f:
+    with path.open(encoding="utf-8-sig", newline="") as f:
         return list(csv.DictReader(f))
 
 
-def save_rows(rows: list) -> None:
-    """中断安全的整表写入（design §4.0）：写临时文件 → fsync → os.replace 原子替换。
+def save_rows(rows: list, path: Path = None, fields: list = None) -> None:
+    """中断安全的整表写入（A1a design §4.0 → A2 起统一走 data_io 原子助手）。
 
     upsert 每成功一期都会整表重写一次；若直接以 "w" 打开权威 CSV，
     Ctrl-C 落在"已截断、未写完"窗口会丢掉此前全部成功行。
-    临时文件与 CSV 同卷（都在仓库 ROOT 内），os.replace 保持原子性。
     """
-    CSV_PATH.parent.mkdir(parents=True, exist_ok=True)
-    TMP_CSV.parent.mkdir(parents=True, exist_ok=True)
-    with TMP_CSV.open("w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=FIELDS)
-        w.writeheader()
-        w.writerows(rows)
-        f.flush()
-        os.fsync(f.fileno())
-    os.replace(TMP_CSV, CSV_PATH)
+    data_io.atomic_write_csv(path or CSV_PATH, fields or FIELDS, rows)
 
 
-def upsert(new: dict) -> None:
+def upsert(new: dict, region: str = "south") -> None:
     """r3 写入规则：成功才覆盖；失败永不覆盖成功（该周无行才写失败行）。"""
-    rows = load_rows()
+    spec = REGIONS[region]
+    path, fields = spec["csv"], spec["fields"]
+    rows = load_rows(path)
     key = lambda r: (int(r["iso_year"]), int(r["iso_week"]))
     same = [r for r in rows if key(r) == (new["iso_year"], new["iso_week"])]
     if new["status"] == "ok":
+        # 上游修订留痕：覆盖旧成功行前，数值有变必须记 old→new（A2 复核阻塞项）
+        if same and same[0].get("status") == "ok":
+            old_ili, old_pos = same[0].get(spec["ili"], ""), same[0].get(spec["pos"], "")
+            new_ili, new_pos = new.get(spec["ili"], ""), new.get(spec["pos"], "")
+            if (old_ili, old_pos) != (new_ili, new_pos):
+                log_change(f"{new['iso_year']}W{new['iso_week']}",
+                           f"[{region}] upstream_revise",
+                           f"ILI={old_ili} 阳性率={old_pos}",
+                           f"ILI={new_ili} 阳性率={new_pos}")
         rows = [r for r in rows if key(r) != (new["iso_year"], new["iso_week"])]
-        rows.append({**{k: "" for k in FIELDS}, **new})
-        save_rows(rows)
-        print(f"[ok] {new['iso_year']}W{new['iso_week']} ILI%={new['south_ili_pct']} "
-              f"阳性率={new['south_flu_positive_pct']}%（覆盖/写入成功行）")
+        rows.append({**{k: "" for k in fields}, **new})
+        save_rows(rows, path, fields)
+        print(f"[ok][{region}] {new['iso_year']}W{new['iso_week']} "
+              f"ILI%={new[spec['ili']]} 阳性率={new[spec['pos']]}%（覆盖/写入成功行）")
     else:
         if same and same[0]["status"] == "ok":
-            print(f"[{new['status']}] 该周已有成功数据，保留不动（失败不覆盖成功）")
+            print(f"[{new['status']}][{region}] 该周已有成功数据，保留不动（失败不覆盖成功）")
             return
         if same:  # 该周已有失败行 → 覆盖为最新失败信息；无行 → 追加
             rows = [r for r in rows if key(r) != (new["iso_year"], new["iso_week"])]
-        rows.append({**{k: "" for k in FIELDS}, **new})
-        save_rows(rows)
-        print(f"[{new['status']}] {new['iso_year']}W{new['iso_week']} 写入失败状态行")
+        rows.append({**{k: "" for k in fields}, **new})
+        save_rows(rows, path, fields)
+        print(f"[{new['status']}][{region}] {new['iso_year']}W{new['iso_week']} 写入失败状态行")
 
 
-def fetch_latest() -> None:
-    now = datetime.now().isoformat(timespec="seconds")
-    base = {"fetched_at": now, "status": "ok"}
+def fetch_latest(regions: tuple = ("south",)) -> dict:
+    """抓最新一期；下载与 pdftotext 一次，各区域独立解析写入（A2 design §3.1）。
+
+    返回 {源键: {"status": ok/failed, ...}}（源键 flu_south / flu_north）。
+    共同错误（列表/文章/PDF）→ 全部区域 failed；区域解析错误只影响该区域。
+    """
+    src_key = {"south": "flu_south", "north": "flu_north"}
+    results = {src_key[r]: {"status": "failed", "reason": "未执行"} for r in regions}
     try:
         html = http_get(LIST_URL).decode("utf-8", "replace")
         art_url, pub, title = pick_latest_article(html)
@@ -287,25 +350,45 @@ def fetch_latest() -> None:
         pdf_url = find_pdf_link(art, art_url)
         print(f"PDF: {pdf_url}")
         txt = pdf_to_text(http_get(pdf_url))
-        parsed, warns = parse_issue(txt, title=title)
-        for w in warns:
-            code, _, detail = w.partition(": ")
-            log_change(f"{parsed['iso_year']}W{parsed['iso_week']}", code or "warn", detail, "")
-        upsert({**base, **parsed,
-                "source_url": art_url, "source_pubdate": pub.isoformat()})
     except Exception as e:
         print(f"[失败] {e}", file=sys.stderr)
-        # r3：失败行仅在能定位目标周次时才有意义。列表页都失败时连周次都未知，
-        # 只报错退出，不写占位垃圾行（避免 iso_week=0 类无效主键）。
-        sys.exit(1)
+        # r3：列表页失败时连周次都未知，不写占位垃圾行（避免 iso_week=0 类无效主键）。
+        for k in results:
+            results[k]["reason"] = str(e)[:200]
+        return results
+    now = datetime.now().isoformat(timespec="seconds")
+    for region in regions:
+        spec = REGIONS[region]
+        try:
+            parsed, warns = parse_issue(txt, title=title, region=region)
+            for w in warns:
+                code, _, detail = w.partition(": ")
+                log_change(f"{parsed['iso_year']}W{parsed['iso_week']}", code or "warn",
+                           f"[{region}] {detail}", "")
+            upsert({**{"fetched_at": now, "status": "ok"}, **parsed,
+                    "source_url": art_url, "source_pubdate": pub.isoformat()}, region)
+            results[src_key[region]] = {"status": "ok",
+                                        "week": f"{parsed['iso_year']}W{parsed['iso_week']}"}
+        except Exception as e:
+            print(f"[失败][{region}] {e}", file=sys.stderr)
+            results[src_key[region]] = {"status": "failed", "reason": str(e)[:200]}
+            log_change("latest", f"{src_key[region]}_fail", "", str(e)[:160])
+    return results
 
 
 def log_change(week: str, which: str, old: str, new: str) -> None:
-    """changes.log 追加一行（格式同 fetch_sentinel.py：时间戳\t周次\twhich\told\tnew）。"""
+    """changes.log 追加一行（格式同 fetch_sentinel.py：时间戳\t周次\twhich\told\tnew）。
+
+    契约（A2 复核阻塞项）：固定 5 列可解析；字段内 tab/换行替换为空格防破坏列边界；
+    纯告警的空 new 以「无变更」占位，避免行尾空白与变长列。
+    """
+    def clean(v) -> str:
+        return (str(v).replace("\t", " ").replace("\r", " ")
+                .replace("\n", " ").strip()) or "无变更"
     ts = datetime.now().isoformat(timespec="seconds")
     CHANGES_LOG.parent.mkdir(parents=True, exist_ok=True)
     with CHANGES_LOG.open("a", encoding="utf-8") as f:
-        f.write(f"{ts}\t{week}\t{which}\t{old}\t{new}\n")
+        f.write(f"{ts}\t{clean(week)}\t{clean(which)}\t{clean(old)}\t{clean(new)}\n")
 
 
 # ivdc 档案列表（A1a 回补源）。条目正则实测覆盖 30 页 600 条（design §3.1）。
@@ -400,17 +483,23 @@ def _final_class(k: tuple, csv_ok: set, proc: dict) -> str:
     return "pending_fail"
 
 
-def backfill(from_w: tuple = BACKFILL_MIN, to_w: tuple = None,
-             force: bool = False, limit: int = None) -> None:
-    """历史回补：枚举 → 逐期下载解析 → upsert；可中断续跑（已有 ok 周跳过不下载）。
+def backfill(region: str = "south", from_w: tuple = BACKFILL_MIN, to_w: tuple = None,
+             force: bool = False, limit: int = None) -> dict:
+    """历史回补（单区域）：枚举 → 逐期下载解析 → upsert；可中断续跑（已有 ok 周跳过不下载）。
 
-    失败期只记 changes.log，不写 CSV 失败行（build_site.py:69-80 会把历史失败行
+    A2：region 参数化权威 CSV 与数值字段；同一 txt 缓存两区共用（同一份 PDF），
+    north-only 回补时南方 CSV 逐字节不变（design §3.1）。
+
+    失败期只记 changes.log，不写 CSV 失败行（build_site.py 会把历史失败行
     渲染成常驻错误横幅）；对账 = 收尾后按 CSV 最终状态三分类（design §4.2/§6.4），
     进程内 {周键: 过程结果} 只作失败原因明细，不数日志行。
     """
+    spec = REGIONS[region]
+    path, fields = spec["csv"], spec["fields"]
+    src_key = {"south": "flu_south", "north": "flu_north"}[region]
     items, merged_cov = enumerate_archive()
     ok_rows = {(int(r["iso_year"]), int(r["iso_week"])): r
-               for r in load_rows() if r.get("status") == "ok"}
+               for r in load_rows(path) if r.get("status") == "ok"}
     # 目标区间依据 = 单周条目 ∪ 合并版覆盖周（复核 B1：全是合并版或合并版收尾时，
     # 只看 items 会把合并周排除在目标外，对账凭空少一周一段）
     known = set(items) | set(merged_cov)
@@ -422,7 +511,7 @@ def backfill(from_w: tuple = BACKFILL_MIN, to_w: tuple = None,
     target = _expected_weeks(from_w, to_w if to_w else hi)
     final: dict = {}
     done = 0
-    print(f"[backfill] 目标 {len(target)} 周（{from_w[0]}W{from_w[1]}→{hi[0]}W{hi[1]}），"
+    print(f"[backfill][{region}] 目标 {len(target)} 周（{from_w[0]}W{from_w[1]}→{hi[0]}W{hi[1]}），"
           f"已有 ok 行 {sum(1 for k in target if k in ok_rows)}，force={force}")
     for k in target:
         if k not in items:
@@ -451,8 +540,10 @@ def backfill(from_w: tuple = BACKFILL_MIN, to_w: tuple = None,
         done += 1
         try:
             cache = TXT_DIR / f"{k[0]}_W{k[1]}.txt"
+            meta_p = TXT_DIR / f"{k[0]}_W{k[1]}.json"
             anchor = ""
             fresh = False
+            legacy = False  # 旧裸 txt（A1a 遗留，无元数据）复用后补建绑定
             if force or not cache.exists():
                 art = http_get(art_url).decode("utf-8", "replace")
                 m = re.search(r'href="([^"]+\.pdf)"[^>]*>([^<]+)<', art, re.I)
@@ -463,7 +554,62 @@ def backfill(from_w: tuple = BACKFILL_MIN, to_w: tuple = None,
                 fresh = True
                 time.sleep(RATE_LIMIT)
             else:
-                txt = cache.read_text(encoding="utf-8")
+                # 缓存来源完整绑定（复核 IMP-12 round-2）：元数据缺键/坏 JSON/哈希不符/
+                # 文章 URL、周次、标题与本轮枚举不一致 → 缓存不可信，一律重新下载
+                # 并留痕；校验通过才允许复用。冻结 :124：缓存绑定文章 URL/PDF URL/
+                # 摘要/周次。旧裸 txt（A1a 遗留，元数据文件不存在）按一次性候选
+                # 复用：身份由 parse_issue(title=) 标题↔内容硬校验兜底，解析成功后
+                # 补建元数据并留痕（可验证记录），下次起走完整校验。
+                meta_exists = meta_p.exists()
+                try:
+                    meta = json.loads(meta_p.read_text(encoding="utf-8"))
+                    if not isinstance(meta, dict):
+                        meta = None
+                except (OSError, ValueError):
+                    meta = None
+                need_keys = ("article_url", "pdf_url", "title", "week", "sha256")
+                txt_hash = hashlib.sha256(cache.read_bytes()).hexdigest()
+                mismatch = None
+                legacy = False
+                if not meta_exists:
+                    legacy = True  # 旧裸 txt：一次性候选，成功后补建绑定
+                elif meta is None:
+                    mismatch = "元数据损坏（坏 JSON）"
+                elif any(k not in meta for k in need_keys):
+                    mismatch = "元数据字段不全"
+                elif txt_hash != meta.get("sha256"):
+                    mismatch = "缓存文本摘要不符"
+                elif meta.get("article_url") != art_url:
+                    mismatch = f"文章 URL 不符（{meta.get('article_url')}）"
+                elif meta.get("week") != f"{k[0]}W{k[1]}":
+                    mismatch = f"周次不符（{meta.get('week')}）"
+                elif meta.get("title") != title:
+                    mismatch = "标题不符"
+                elif not str(meta.get("pdf_url", "")).startswith("http"):
+                    # 复核 IMP-12 round-3：pdf_url 无效（如 legacy 补建的空串）
+                    # 不构成完整绑定——本次按一次性候选复用（摘要/文章/周次/
+                    # 标题均已验），解析成功后重取文章页补全 pdf_url；
+                    # 补全失败则下轮仍是 legacy，不升级为零请求信任。
+                    legacy = True
+                if mismatch:
+                    if meta_exists:
+                        # 坏 JSON（meta=None）同样留痕（复核 IMP-12 round-3：
+                        # 元数据存在但不可读时不能静默重下）
+                        log_change(f"{k[0]}W{k[1]}", "cache_invalid",
+                                   mismatch, "重新下载并更新缓存")
+                    art = http_get(art_url).decode("utf-8", "replace")
+                    m = re.search(r'href="([^"]+\.pdf)"[^>]*>([^<]+)<', art, re.I)
+                    if not m:
+                        raise RuntimeError("no_pdf: 文章页未找到 PDF 链接")
+                    pdf_url, anchor = urljoin(art_url, m.group(1)), m.group(2).strip()
+                    txt = pdf_to_text(http_get(pdf_url))
+                    fresh = True
+                    time.sleep(RATE_LIMIT)
+                else:
+                    txt = cache.read_text(encoding="utf-8")
+                    # legacy（旧裸 txt 无 meta / pdf_url 未绑定）时锚文本不可知；
+                    # 解析后的标题/PDF 内期号守卫仍兜底（merged/期号冲突）
+                    anchor = meta.get("anchor", "") if isinstance(meta, dict) else ""
             # 锚文本范围式周次/期号 = 合并版（复核 B1；散置期号不可靠不在此判）
             if _anchor_is_merged(anchor):
                 final[k] = "merged_skip"
@@ -471,11 +617,45 @@ def backfill(from_w: tuple = BACKFILL_MIN, to_w: tuple = None,
                            "锚文本为范围式周次/期号（合并版）")
                 print(f"[skip] {k[0]}W{k[1]} 合并版（锚文本：{anchor}）")
                 continue
-            row, warns = parse_issue(txt, title=title)
+            row, warns = parse_issue(txt, title=title, region=region)
             if fresh:
-                # 解析成功才落缓存：--force 重抓到坏 PDF 时不破坏旧缓存（design §3.2，复核 B2）
+                # 解析成功才落缓存：--force 重抓到坏 PDF 时不破坏旧缓存（design §3.2，复核 B2）。
+                # newline="\n"：不做换行翻译——校验用 read_bytes() 的原始字节算摘要，
+                # 写入时若翻译成 CRLF，下次命中会永远"摘要不符"（Windows 实测踩坑）。
                 TXT_DIR.mkdir(parents=True, exist_ok=True)
-                cache.write_text(txt, encoding="utf-8")
+                cache.write_text(txt, encoding="utf-8", newline="\n")
+                meta_p.write_text(json.dumps({
+                    "article_url": art_url, "pdf_url": pdf_url, "title": title,
+                    "week": f"{k[0]}W{k[1]}", "anchor": anchor,
+                    "sha256": hashlib.sha256(txt.encode("utf-8")).hexdigest(),
+                    "saved_at": datetime.now().isoformat(timespec="seconds"),
+                }, ensure_ascii=False), encoding="utf-8")
+            elif legacy:
+                # 一次性旧缓存解析成功：升级为完整绑定必须补全 pdf_url
+                # （复核 IMP-12 round-3 关闭条件——pdf_url 须为有效 http 才算
+                # 完整绑定，空串会让坏缓存获得永久零请求信任）。只取文章页
+                # 学 PDF 链接（不下载 PDF）；失败则写回空串，下轮仍按
+                # legacy 重试绑定。摘要/文章/周次/标题本轮已验证。
+                pdf_url2, anchor2 = "", anchor
+                try:
+                    art2 = http_get(art_url).decode("utf-8", "replace")
+                    time.sleep(RATE_LIMIT)  # 真实网络礼貌限速；测试沙箱已置 0
+                    m2 = re.search(r'href="([^"]+\.pdf)"[^>]*>([^<]+)<', art2, re.I)
+                    if m2:
+                        pdf_url2 = urljoin(art_url, m2.group(1))
+                        anchor2 = m2.group(2).strip()
+                except Exception:
+                    pdf_url2 = ""
+                TXT_DIR.mkdir(parents=True, exist_ok=True)
+                meta_p.write_text(json.dumps({
+                    "article_url": art_url, "pdf_url": pdf_url2, "title": title,
+                    "week": f"{k[0]}W{k[1]}", "anchor": anchor2,
+                    "sha256": txt_hash,
+                    "saved_at": datetime.now().isoformat(timespec="seconds"),
+                }, ensure_ascii=False), encoding="utf-8")
+                log_change(f"{k[0]}W{k[1]}", "cache_legacy_bind",
+                           "旧缓存（来源未完整绑定）",
+                           f"解析成功，补全绑定（pdf_url={pdf_url2 or '仍缺失，下轮重试'}）")
             # 锚文本期号只告警不判失败（实测上游会标错：2024W26 锚文本 811 vs PDF 内 810）
             if anchor:
                 a_set = set(re.findall(r"第\s*(\d+)\s*期", anchor))
@@ -498,15 +678,15 @@ def backfill(from_w: tuple = BACKFILL_MIN, to_w: tuple = None,
                    "status": "ok", "source_url": art_url,
                    "source_pubdate": pub.replace("/", "-"), **row}
             if force and old is not None and not any(w.startswith("parse_error") for w in warns):
-                if (old.get("south_ili_pct"), old.get("south_flu_positive_pct")) == \
-                        (row["south_ili_pct"], row["south_flu_positive_pct"]):
+                if (old.get(spec["ili"]), old.get(spec["pos"])) == \
+                        (row[spec["ili"]], row[spec["pos"]]):
                     print(f"[force] {k[0]}W{k[1]} 数值无变化，不覆盖")
                     final[k] = "ok"
                     continue
                 log_change(f"{k[0]}W{k[1]}", "backfill_revise",
-                           f"ILI% {old.get('south_ili_pct')} / 阳性率 {old.get('south_flu_positive_pct')}",
-                           f"ILI% {row['south_ili_pct']} / 阳性率 {row['south_flu_positive_pct']}")
-            upsert(new)
+                           f"ILI% {old.get(spec['ili'])} / 阳性率 {old.get(spec['pos'])}",
+                           f"ILI% {row[spec['ili']]} / 阳性率 {row[spec['pos']]}")
+            upsert(new, region)
             final[k] = "ok"
         except Exception as e:
             msg = str(e)
@@ -517,13 +697,13 @@ def backfill(from_w: tuple = BACKFILL_MIN, to_w: tuple = None,
             else:
                 code = msg.split(":", 1)[0] if ":" in msg else "parse_error"
             final[k] = f"fail:{code}"
-            log_change(f"{k[0]}W{k[1]}", "backfill_fail", code, msg[:160])
-            print(f"[fail] {k[0]}W{k[1]} {msg}", file=sys.stderr)
+            log_change(f"{k[0]}W{k[1]}", f"[{region}] backfill_fail", code, msg[:160])
+            print(f"[fail][{region}] {k[0]}W{k[1]} {msg}", file=sys.stderr)
 
     # 收尾：行序归一（复用同一安全写入）+ 按最终状态三分类对账（design §4.2/§6.4，复核 B3）
-    rows = load_rows()
+    rows = load_rows(path)
     rows.sort(key=lambda r: (int(r["iso_year"]), int(r["iso_week"])))
-    save_rows(rows)
+    save_rows(rows, path, fields)
     csv_ok = {(int(r["iso_year"]), int(r["iso_week"]))
               for r in rows if r.get("status") == "ok"}
     cls = {k: _final_class(k, csv_ok, final) for k in target}
@@ -542,6 +722,9 @@ def backfill(from_w: tuple = BACKFILL_MIN, to_w: tuple = None,
     ms = [f"{k[0]}W{k[1]}" for k in target if cls[k] == "merged_skip"]
     if ms:
         print(f"[merged_skip] {ms}")
+    status = "ok" if counts["pending_fail"] == 0 else "partial"
+    return {src_key: {"status": status, "counts": counts,
+                      "target": len(target), "region": region}}
 
 
 def _parse_week_arg(s: str) -> tuple:
@@ -556,24 +739,52 @@ def _parse_week_arg(s: str) -> tuple:
     return (y, w)
 
 
+def _write_result(path, run_id: str, results: dict, stage: str) -> None:
+    """A2 结果文件（design §4）：子进程带同一 run_id 写自己的结果，父管线校验合并。"""
+    payload = {"schema": 2, "stage": stage, "run_id": run_id or "", "sources": results}
+    data_io.atomic_write_json(path, payload)
+
+
 if __name__ == "__main__":
     if TMP_CSV.exists():
         TMP_CSV.unlink()  # 启动清理：上次被杀遗留的半成品不得参与任何逻辑（design §4.0）
     argv = sys.argv[1:]
+    # A2 全局旗标先解析（与模式无关；未知选项必须报错，不得误当 URL）
+    regions = ("south",)
+    result_file = None
+    run_id = ""
+    rest = []
+    it = iter(argv)
+    for a in it:
+        if a == "--regions":
+            v = next(it, "")
+            regions = tuple(t.strip() for t in v.split(",") if t.strip()) or ("south",)
+            bad = [r for r in regions if r not in REGIONS]
+            if bad:
+                raise SystemExit(f"未知区域: {bad}（可选 south/north）")
+        elif a == "--result-file":
+            v = next(it, "")
+            result_file = Path(v) if v else None
+        elif a == "--run-id":
+            run_id = next(it, "")
+        else:
+            rest.append(a)
+    argv = rest
+    exit_code = 0
     if argv and argv[0] == "--backfill":
         # 参数分支必须先于「任何参数当 URL」分支，否则 --backfill 会被当成文章 URL
         opts = {"from_w": BACKFILL_MIN, "to_w": None, "force": False, "limit": None}
-        it = iter(argv[1:])
-        for a in it:
+        it2 = iter(argv[1:])
+        for a in it2:
             if a == "--force":
                 opts["force"] = True
             elif a == "--from":
-                opts["from_w"] = _parse_week_arg(next(it, ""))
+                opts["from_w"] = _parse_week_arg(next(it2, ""))
             elif a == "--to":
-                opts["to_w"] = _parse_week_arg(next(it, ""))
+                opts["to_w"] = _parse_week_arg(next(it2, ""))
             elif a == "--limit":
                 try:
-                    opts["limit"] = int(next(it, ""))
+                    opts["limit"] = int(next(it2, ""))
                 except ValueError:
                     raise SystemExit("--limit 需要一个整数")
                 if opts["limit"] <= 0:
@@ -586,14 +797,25 @@ if __name__ == "__main__":
                 "2016–2018 为扫描件无文本层，2019–2022 缺南方分母（design §0 版式分代）")
         if opts["to_w"] is not None and opts["from_w"] > opts["to_w"]:
             raise SystemExit(f"--from {opts['from_w']} 晚于 --to {opts['to_w']}，区间为空")
-        backfill(**opts)
+        results = {}
+        for region in regions:
+            results.update(backfill(region=region, **opts))
+        if result_file:
+            _write_result(result_file, run_id, results, "fetch")
+        exit_code = 0 if all(v["status"] == "ok" for v in results.values()) else 1
     elif argv:  # 抽验模式：对指定文章 URL 解析打印，不写 CSV
         art = http_get(argv[0]).decode("utf-8", "replace")
         pdf_url = find_pdf_link(art, argv[0])
         print(f"PDF: {pdf_url}")
-        res, warns = parse_issue(pdf_to_text(http_get(pdf_url)))
-        print("解析结果:", res)
-        for w in warns:
-            print("[告警]", w)
+        txt = pdf_to_text(http_get(pdf_url))
+        for region in regions:
+            res, warns = parse_issue(txt, region=region)
+            print(f"[{region}] 解析结果:", res)
+            for w in warns:
+                print(f"[{region}] [告警]", w)
     else:
-        fetch_latest()
+        results = fetch_latest(regions=regions)
+        if result_file:
+            _write_result(result_file, run_id, results, "fetch")
+        exit_code = 0 if all(v["status"] == "ok" for v in results.values()) else 1
+    sys.exit(exit_code)

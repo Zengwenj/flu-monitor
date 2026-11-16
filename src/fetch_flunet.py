@@ -17,6 +17,8 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
+import data_io
+
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "data" / "flunet_china.csv"
 URL = "https://xmart-api-public.who.int/FLUMART/VIW_FNT?$format=csv"
@@ -80,11 +82,8 @@ def _convert(tmp: Path) -> None:
                          "inf_positive_pct": pct, "source": "WHO_FluNet",
                          "fetched_at": datetime.now().isoformat(timespec="seconds")})
     rows.sort(key=lambda r: (int(r["iso_year"]), int(r["iso_week"])))
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    with OUT.open("w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=FIELDS)
-        w.writeheader()
-        w.writerows(rows)
+    # A2 起接入共享原子助手：终止不再可能截断权威 CSV（design §4）
+    data_io.atomic_write_csv(OUT, FIELDS, rows)
     years = [int(r["iso_year"]) for r in rows]
     latest = rows[-1]
     print(f"[ok] 中国 {len(rows)} 行（M1 基准≈1021），{min(years)}–{max(years)} 年，"

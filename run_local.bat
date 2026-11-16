@@ -1,27 +1,16 @@
 @echo off
-rem 本地一键运行：抓三源 -> 算指数 -> 生成页面 -> 打开（M4b：扩为三源，兜底完整）
-rem 行为说明：直接写 data/（权威存储）但不自动 push——要看最新就双击本文件，
-rem          要上云需手动 git push 或等云端 Actions 周五自动跑。
+rem 本地一键运行：统一管线（六源抓取 -> 三个指数 -> 五页构建 -> 打开）
+rem 行为说明：写 data/（权威存储）但不自动 push。管线退出 0/1 才打开本轮已校验的页面；
+rem          退出 2（构建失败/另一实例在跑）不打开旧页。
 cd /d "%~dp0"
 set PY=C:/Users/zengw/anaconda3/python.exe
 if not exist "%PY%" set PY=python
 
-echo [1/5] 抓取流感周报...
-"%PY%" -X utf8 src\fetch_flu_south.py
-if errorlevel 1 echo [警告] 流感周报抓取失败，继续用已有数据
+"%PY%" -X utf8 src\run_pipeline.py --local --open
+set RC=%ERRORLEVEL%
 
-echo [2/5] 抓取哨点周报（多病原/排序）...
-"%PY%" -X utf8 src\fetch_sentinel.py
-if errorlevel 1 echo [警告] 哨点周报抓取失败，继续用已有数据
-
-echo [3/5] 抓取 WHO FluNet（全国背景）...
-"%PY%" -X utf8 src\fetch_flunet.py
-if errorlevel 1 echo [警告] FluNet 抓取失败，继续用已有数据
-
-echo [4/5] 计算指数...
-"%PY%" -X utf8 src\compute_index.py
-
-echo [5/5] 生成页面...
-"%PY%" -X utf8 src\build_site.py --local
-
-start "" "site\index.html"
+if "%RC%"=="0" goto done
+if "%RC%"=="1" echo [警告] 部分数据源本轮失败，页面已按诚实降级生成（详见上方日志）
+if "%RC%"=="2" echo [错误] 管线或构建失败，未打开页面；请查看上方日志
+:done
+if not "%RC%"=="0" if not "%RC%"=="1" pause

@@ -21,6 +21,7 @@ import urllib.request
 from datetime import datetime
 from pathlib import Path
 
+import data_io
 from bs4 import BeautifulSoup
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -261,11 +262,10 @@ def load(p: Path) -> list:
 
 
 def save(p: Path, rows: list, fields: list) -> None:
-    p.parent.mkdir(parents=True, exist_ok=True)
-    with p.open("w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=fields)
-        w.writeheader()
-        w.writerows(rows)
+    """整表写入。A2 起接入共享原子助手（.tmp_writes 暂存 + os.replace）：
+    超时终止不再可能截断权威 CSV（design §4，复核 A2-LEGACY-WRITE-PROTECTION）。
+    解析/字段/覆盖规则/22 行守卫均不变。"""
+    data_io.atomic_write_csv(p, fields, rows)
 
 
 def log_change(week: str, which: str, old: str, new: str) -> None:

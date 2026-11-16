@@ -34,50 +34,37 @@ jobs:
       - name: Install Python deps
         run: pip install -r requirements.txt
 
-      - name: Connectivity probe (chinacdc.cn)
-        run: |
-          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 \
-                 -A "Mozilla/5.0" https://www.chinacdc.cn/ || echo 000)
-          echo "chinacdc.cn HTTP status: $code"
-          if [ "$code" = "200" ]; then
-            echo "CHINACDC_REACHABLE=true" >> "$GITHUB_ENV"
-          else
-            echo "CHINACDC_REACHABLE=false" >> "$GITHUB_ENV"
-          fi
-
-      - name: Fetch WHO FluNet
-        id: flunet
+      # 统一管线：不再用 chinacdc 首页可达性跳过独立省站，各源直接尝试并各自超时。
+      # 退出码 0=全部成功 1=部分失败（仍生成诚实降级页） 2=管线/构建失败。
+      - name: Run pipeline (cloud)
+        id: pipeline
         continue-on-error: true
-        timeout-minutes: 15
-        run: python -X utf8 src/fetch_flunet.py
+        timeout-minutes: 45
+        run: python -X utf8 src/run_pipeline.py --cloud --timeout 1200
 
-      - name: Fetch sentinel weekly (chinacdc)
-        id: sent
-        if: env.CHINACDC_REACHABLE == 'true'
-        continue-on-error: true
-        run: python -X utf8 src/fetch_sentinel.py
-
-      - name: Fetch flu weekly (chinacdc)
-        id: flu
-        if: env.CHINACDC_REACHABLE == 'true'
-        continue-on-error: true
-        run: python -X utf8 src/fetch_flu_south.py
-
-      - name: Write run_status.json
+      # 单独记录 pipeline exit 与 site_ready，避免仅靠 continue-on-error 掩盖构建失败
+      - name: Record pipeline outcome
+        id: outcome
         if: always()
-        env:
-          SENT: ${{ steps.sent.outcome }}
-          FLU: ${{ steps.flu.outcome }}
-          FLUNET: ${{ steps.flunet.outcome }}
-          REACH: ${{ env.CHINACDC_REACHABLE }}
-        run: python -X utf8 src/write_run_status.py
-
-      - name: Compute index and build site
         run: |
-          python -X utf8 src/compute_index.py
-          python -X utf8 src/build_site.py
+          # run_pipeline 的真实退出码会被 step outcome 掩盖，改用 last_run.json 记录判定
+          ptr=".tmp_pipeline/last_run.json"
+          if [ -f "$ptr" ]; then
+            site_ready=$(python -c "import json;print(str(json.load(open('$ptr'))['site_ready']).lower())")
+            exit_code=$(python -c "import json;print(json.load(open('$ptr'))['exit'])")
+            run_id=$(python -c "import json;print(json.load(open('$ptr'))['run_id'])")
+          else
+            site_ready=false; exit_code=2; run_id=""
+          fi
+          echo "pipeline_exit=$exit_code"
+          echo "site_ready=$site_ready"
+          echo "run_id=$run_id"
+          echo "pipeline_exit=$exit_code" >> "$GITHUB_OUTPUT"
+          echo "site_ready=$site_ready" >> "$GITHUB_OUTPUT"
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
 
       - name: Commit data back to repo
+        if: steps.outcome.outputs.site_ready == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -89,11 +76,27 @@ jobs:
             git push
           fi
 
+      # 只有构建成功（site_ready=true）才上传，管线退出 2 时阻止上传
       - name: Upload Pages artifact
+        if: steps.outcome.outputs.site_ready == 'true'
         uses: actions/upload-pages-artifact@v4
         with:
-          path: site
+          path: site_publish  # A2-SEARCH-05：只部署本轮验证过的首页（site/ 内历史文件不进 artifact）
 
       - name: Deploy to GitHub Pages
         id: deployment
+        if: steps.outcome.outputs.site_ready == 'true'
         uses: actions/deploy-pages@v4
+
+      # 部分失败（exit=1）：仍部署降级页面，但显式告警，不让绿色掩盖数据缺口
+      - name: Warn on partial failure
+        if: steps.outcome.outputs.site_ready == 'true' && steps.outcome.outputs.pipeline_exit != '0'
+        run: |
+          echo "::warning::部分数据源失败（pipeline_exit=${{ steps.outcome.outputs.pipeline_exit }}），已部署诚实降级页面"
+
+      # 部分失败时让 run 显示为失败，但保留已完成的提交与部署（不掩盖问题）
+      - name: Fail on pipeline error
+        if: steps.outcome.outputs.site_ready != 'true'
+        run: |
+          echo "::error::构建未通过校验（pipeline_exit=${{ steps.outcome.outputs.pipeline_exit }}），已跳过上传与部署"
+          exit 1

@@ -133,5 +133,13 @@
 2026-11-11T15:19:52	2026W11	backfill_fail	merged_issue	merged_issue: PDF 内出现多个期号 [895, 900]
 2026-11-11T15:28:36	2025W33	backfill_fail	parse_error	parse_error: 表 1 列校验失败 南方10043+北方2995≠合计13029
 2026-11-11T15:28:36	2026W11	backfill_fail	merged_issue	merged_issue: PDF 内出现多个期号 [895, 900]
-2026-11-11T15:34:17	2025W33	table_sum_check	南方10043+北方2995≠合计13029（偏差≤0.2%，按上游笔误照存）	
-2026-11-11T15:34:17	2026W11	cover_leftover_issue	主期号第900期×10，封面残留期号 {895: 1}（照存）	
+2026-11-11T15:34:17	2025W33	table_sum_check	南方10043+北方2995≠合计13029（偏差≤0.2%，按上游笔误照存）
+2026-11-11T15:34:17	2026W11	cover_leftover_issue	主期号第900期×10，封面残留期号 {895: 1}（照存）
+2026-11-12T17:53:15	2025W33	table_sum_check	南方10043+北方2995≠合计13029（偏差≤0.2%，按上游笔误照存）
+2026-11-12T17:53:15	2026W11	cover_leftover_issue	主期号第900期×10，封面残留期号 {895: 1}（照存）
+2026-11-12T18:07:04	2026W21	heilongjiang_flu		同周 2 篇同值，确定性代表 https://www.hljcdc.org/pc/index.php?c=zixundetail&a=index&id=7103&lid=120
+2026-11-12T18:22:18	ALL	heilongjiang_flu	status=空(39行)	status=ok
+2026-11-13T12:18:40	2026W45	heilongjiang_sentinel	无变更	失败：同周 2026W45 多篇 B2 数值冲突，本轮失败保留旧值
+2026-11-15T11:24:58	ALL	locations_catalog	新建	基础集396(CC0 e2c2b2e1)+草湖市659013(dmfw补正)=可查询397;港澳台3行占位不可查询
+2026-11-15T11:25:35	ALL	locations_catalog	新建	基础集396(CC0 e2c2b2e1)+草湖市659013(dmfw补正)=可查询397;港澳台3行占位不可查询
+2026-11-15T11:25:50	ALL	location_product_map	修正	直辖市规范名含市字致region误判unknown(重庆/北京/天津/上海);重生成后south=206 north=191 unknown=3(港澳台)

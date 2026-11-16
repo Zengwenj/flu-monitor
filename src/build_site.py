@@ -9,6 +9,7 @@
 """
 import csv
 import math
+import os
 import sys
 from datetime import date, timedelta
 from html import escape as _esc
@@ -20,29 +21,138 @@ sys.path.insert(0, str(ROOT / "src"))
 from compute_index import child_rank, pathogen_ranking, pathogen_trend  # noqa: E402
 
 FLU_CSV = ROOT / "data" / "flu_south.csv"
+FLU_NORTH_CSV = ROOT / "data" / "flu_north.csv"
+HLJ_FLU_CSV = ROOT / "data" / "heilongjiang_flu.csv"
+HLJ_SENT_CSV = ROOT / "data" / "heilongjiang_sentinel.csv"
+RANK_CSV = ROOT / "data" / "sentinel_rank.csv"
 SC_CSV = ROOT / "data" / "sichuan_monthly.csv"
 RUN_STATUS = ROOT / "data" / "run_status.json"
-OUT = ROOT / "site" / "index.html"
+RUN_STATUS_V2 = 2  # A2 design §4：v2 运行状态 schema 版本（--run-status 显式传入）
+OUT = ROOT / "site" / "index.html"  # A2 搜索版：单页
+
+# A2 design §2.1/§5：三个流感产品的字段映射与口径文案（默认南方，兼容旧调用）。
+FLU_REGIONS = {
+    "south": {"csv": FLU_CSV, "ili": "south_ili_pct", "pos": "south_flu_positive_pct",
+              "area": "南方片", "rank_category": "南方省份",
+              "source_label": "国家流感中心《中国流感监测周报》"},
+    "north": {"csv": FLU_NORTH_CSV, "ili": "north_ili_pct", "pos": "north_flu_positive_pct",
+              "area": "北方片", "rank_category": "北方省份",
+              "source_label": "国家流感中心《中国流感监测周报》（北方片）"},
+    "heilongjiang": {"csv": HLJ_FLU_CSV, "ili": "ili_pct", "pos": "flu_positive_pct",
+                     "area": "黑龙江", "rank_category": "北方省份",
+                     "source_label": "黑龙江省疾病预防控制中心《黑龙江省流感监测周报》"},
+}
 
 
-def run_banner(local: bool = False) -> str:
-    """M4b/momus B1：读本次运行状态——chinacdc 源本次 skipped/failed 时显诚实横幅，
-    避免"旧数据被标数据正常"。
-    本地模式（--local）忽略该文件：bot 回写会把云端上一轮状态带回仓库，
-    本地构建若读它会误报/漏报（trellis-check 中等项）。"""
+SRC_NAMES = {"flu_south": "流感周报（南方）", "flu_north": "流感周报（北方）",
+             "heilongjiang_flu": "黑龙江流感周报",
+             "heilongjiang_sentinel": "黑龙江哨点周报",
+             "sentinel": "全国哨点周报", "flunet": "WHO FluNet"}
+
+
+def _status_of(src):
+    """兼容 v1（字符串）与 v2（对象）。返回 (status, 明细)。"""
+    if isinstance(src, dict):
+        return src.get("status"), {k: v for k, v in src.items() if k != "status"}
+    return src, {}
+
+
+# 各页相关数据源（复核 IMP-04：按页只显示该页卡片实际依赖的源，缺键按 unknown 提示）
+# 依据卡片契约逐卡核对：flunet_china.csv 当前不渲染任何卡片（仅页脚提及），
+# 故不列入任何页面的相关源；黑龙江页无北方片指数卡（只有北方片名称背景卡=哨点源）；
+# A2 搜索版：单页发布，运行状态横幅只按首页相关源过滤。
+PAGE_SOURCES = {
+    "index": ({"flu_south", "sentinel"}, {"south"}),
+}
+COMPUTE_NAMES = {"south": "南方片指数", "north": "北方片指数",
+                 "heilongjiang": "黑龙江指数"}
+
+
+def run_banner(local: bool = False, run_id: str = None, page: str = "index",
+               status=None) -> str:
+    """运行状态横幅（A2 design §4：v2 本轮 / v1 历史 / local 无状态须注明）。
+
+    - status=None：local 构建且未提供显式状态 → 注明「未提供本次运行记录」；
+      云端无状态文件 → 空串（旧页面行为）。
+    - v2（schema=2）：run_id 匹配才是"本轮"；不匹配标历史运行，不称本次。
+      只显示与 page 相关的采集源与计算目标；相关键缺失按 unknown 提示（不静默）。
+    - v1（旧扁平结构）：只能当历史运行信息，标其 run_at。
+    - 坏 JSON：不作为成功，也不能凭空断定失败，按未知处理。
+    """
     import json
-    if local or not RUN_STATUS.exists():
-        return ""
-    try:
-        st = json.loads(RUN_STATUS.read_text(encoding="utf-8"))
-    except Exception:
-        return ""
-    srcs = st.get("sources", {})
-    names = {"flu_south": "流感周报", "sentinel": "哨点周报"}
-    bad = [names[k] for k in names if srcs.get(k) in ("skipped", "failed")]
+    if status is None:
+        path = RUN_STATUS
+        if local:
+            return ('<div class="banner">ℹ 本地构建 · 未提供本次运行记录 · '
+                    '页面按各源存量数据展示</div>')
+        if not path.exists():
+            return ""
+        try:
+            status = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            status = "bad"
+    if status == "bad":
+        return ('<div class="banner">⚠ 运行状态文件无法解析 · '
+                '当前页面数据按存量展示，未确认本轮采集结果</div>')
+    st = status
+    srcs = st.get("sources") or {}
+    rel_fetch, rel_compute = PAGE_SOURCES.get(page, PAGE_SOURCES["index"])
+    if st.get("schema") == 2:
+        this_run = (run_id is not None and st.get("run_id") == run_id)
+        failed, skipped, unknown = [], [], []
+        for k in sorted(rel_fetch):
+            if k not in srcs:
+                unknown.append(SRC_NAMES.get(k, k))  # 缺键=unknown，不静默（IMP-04）
+                continue
+            status_v, _ = _status_of(srcs[k])
+            name = SRC_NAMES.get(k, k)
+            if status_v == "failed":
+                failed.append(name)
+            elif status_v == "skipped":
+                skipped.append(name)
+            elif status_v != "ok":
+                unknown.append(name)
+        comp = st.get("compute") or {}
+        comp_failed, comp_skipped, comp_unknown = [], [], []
+        for t in sorted(rel_compute):
+            name = COMPUTE_NAMES.get(t, t)
+            raw = comp.get(t)
+            if not isinstance(raw, dict) or raw.get("status") is None:
+                comp_unknown.append(name)
+            elif raw.get("status") == "failed":
+                comp_failed.append(name)
+            elif raw.get("status") == "skipped":
+                comp_skipped.append(name)  # 复核 03：skipped≠unknown，四态分列
+            elif raw.get("status") != "ok":
+                comp_unknown.append(name)
+        parts = []
+        if failed:
+            parts.append(f'本次未能获取最新数据（{"、".join(failed)}）')
+        if skipped:
+            parts.append(f'本次未执行获取（{"、".join(skipped)}）')
+        if unknown:
+            parts.append(f'状态未知（{"、".join(unknown)}）')
+        if comp_failed:
+            parts.append(f'指数计算未完成（{"、".join(comp_failed)}）')
+        if comp_skipped:
+            parts.append(f'本次未执行指数计算（{"、".join(comp_skipped)}）')
+        if comp_unknown:
+            parts.append(f'指数计算状态未知（{"、".join(comp_unknown)}）')
+        if not parts:
+            return ""
+        # 不再用整轮 complete 追加“未全部完成”：构建时读到的必是采集阶段快照
+        # （complete 恒为 false），该后缀会把正常部分失败误报成整轮未完成；
+        # 采集/计算的真实状态已由上方分列文案表达（复核 IMP-04）。
+        head = "本次更新" if this_run else "历史运行（非本轮）"
+        when = st.get("finished_at") or st.get("started_at") or "?"
+        return (f'<div class="banner">⚠ {head} · {" · ".join(parts)} · '
+                f'当前展示为各卡最新成功数据 · 运行时间 {when}</div>')
+    # v1：历史运行信息
+    bad = [SRC_NAMES.get(k, k) for k, v in srcs.items()
+           if _status_of(v)[0] in ("failed", "skipped")]
     if not bad:
         return ""
-    return (f'<div class="banner">⚠ 本次更新未能获取最新数据（{"、".join(bad)}） · '
+    return (f'<div class="banner">⚠ 上次运行未能获取最新数据（{"、".join(bad)}） · '
             f'当前展示为上次成功的存量数据 · 运行时间 {st.get("run_at", "?")}</div>')
 
 SC_LV4_ADVICE = [
@@ -100,8 +210,9 @@ def valid_url(s):
     return u
 
 
-def build_flu_view(rows: list) -> dict:
-    """把 flu_south.csv 行规范化为周键视图（A1b design §2）。
+def build_flu_view(rows: list, ili_field: str = "south_ili_pct",
+                   pos_field: str = "south_flu_positive_pct") -> dict:
+    """把流感 CSV 行规范化为周键视图（A1b design §2；A2 起按产品字段映射参数化）。
 
     - 周键 (iso_year, iso_week) 经 ISO 历法校验（2025W53 这类非法周只计数不建模）。
     - 同周多条 ok：数值解析全部有效且数值一致 → 合并为一个点，代表行按
@@ -123,8 +234,8 @@ def build_flu_view(rows: list) -> dict:
     def rep_key(r):
         return (r.get("fetched_at") or "", r.get("source_pubdate") or "",
                 r.get("source_url") or "", r.get("week_start") or "",
-                r.get("goldstein_index") or "", r.get("south_ili_pct") or "",
-                r.get("south_flu_positive_pct") or "")
+                r.get("goldstein_index") or "", r.get(ili_field) or "",
+                r.get(pos_field) or "")
 
     weeks, anchor = {}, None
     for k, grp in grouped.items():
@@ -141,8 +252,8 @@ def build_flu_view(rows: list) -> dict:
             parsed = []
             for r in oks:
                 g = _num(r.get("goldstein_index"))
-                ili = _num(r.get("south_ili_pct"))
-                pos = _num(r.get("south_flu_positive_pct"))
+                ili = _num(r.get(ili_field))
+                pos = _num(r.get(pos_field))
                 if (g is None or g > 10000 or ili is None or ili > 100
                         or pos is None or pos > 100):
                     parsed.append(None)
@@ -156,8 +267,8 @@ def build_flu_view(rows: list) -> dict:
                 wk["state"] = "ok"
                 wk["vals"] = parsed[0]
                 wk["disp"] = (rep.get("goldstein_index") or "",
-                              rep.get("south_ili_pct") or "",
-                              rep.get("south_flu_positive_pct") or "")
+                              rep.get(ili_field) or "",
+                              rep.get(pos_field) or "")
                 wk["week_start_mismatch"] = (rep.get("week_start") or "") != monday.isoformat()
             else:
                 wk["state"] = "conflict"
@@ -165,12 +276,21 @@ def build_flu_view(rows: list) -> dict:
     return {"weeks": weeks, "anchor": anchor, "invalid_week_rows": invalid}
 
 
-def flu_block(model: dict = None) -> dict:
-    """流感卡数据：环比按 ISO 周一差精确 7 天（不借更早周），历史失败不再误报横幅。"""
-    v = model if model is not None else build_flu_view(read_csv(FLU_CSV))
+def flu_block(model: dict = None, region: str = "south") -> dict:
+    """流感卡数据：环比按 ISO 周一差精确 7 天（不借更早周），历史失败不再误报横幅。
+
+    A2：按 region（south/north/heilongjiang）取字段映射与口径文案；
+    输出键沿用该产品的字段名（south 仍为 south_ili_pct/south_flu_positive_pct）。
+    """
+    spec = FLU_REGIONS[region]
+    ili_f, pos_f = spec["ili"], spec["pos"]
+    v = model if model is not None else build_flu_view(read_csv(spec["csv"]), ili_f, pos_f)
+    common = {"invalid_rows": v["invalid_week_rows"], "area": spec["area"],
+              "ili_field": ili_f, "pos_field": pos_f,
+              "source_label": spec["source_label"]}
     if v["anchor"] is None:
-        return {"state": "empty", "banner": "",
-                "invalid_rows": v["invalid_week_rows"],
+        return {"state": "empty", "banner": "", **common,
+                "never_collected": not v["weeks"],
                 "empty_note": "存在未成功获取的记录" if v["weeks"] else ""}
     y, w = v["anchor"]
     wk = v["weeks"][(y, w)]
@@ -182,11 +302,9 @@ def flu_block(model: dict = None) -> dict:
         # S4-B04：异常锚周绝不被称为"上次成功数据"；更晚失败仍如实提示
         banner = (f"最新一期获取失败 · {y}年第{w}周数据异常，未采用 · 请人工核对官网"
                   if later_bad else "")
-        return {"state": "ok", "banner": banner, "anchor_bad": True,
-                "invalid_rows": v["invalid_week_rows"],
+        return {"state": "ok", "banner": banner, "anchor_bad": True, **common,
                 "iso_year": str(y), "iso_week": str(w),
-                "goldstein_index": "—", "south_ili_pct": "—",
-                "south_flu_positive_pct": "—", "source_url": src,
+                "goldstein_index": "—", ili_f: "—", pos_f: "—", "source_url": src,
                 "source_pubdate": rep.get("source_pubdate") or "未提供",
                 "line": f"{y}年第{w}周 · 数据异常，未采用 · 请人工核对官网",
                 "mom": f"{y}年第{w}周数据异常，未比较"}
@@ -203,13 +321,15 @@ def flu_block(model: dict = None) -> dict:
     g_s, ili_s, pos_s = wk["disp"]
     return {"state": "ok", "banner": (f"最新一期获取失败 · 显示上次成功数据（{y}年第{w}周）"
                                       if later_bad else ""),
-            "invalid_rows": v["invalid_week_rows"],
+            **common,
             "iso_year": str(y), "iso_week": str(w), "goldstein_index": g_s,
-            "south_ili_pct": ili_s, "south_flu_positive_pct": pos_s,
+            ili_f: ili_s, pos_f: pos_s,
             "source_url": src,
             "source_pubdate": rep.get("source_pubdate") or "未提供",
             "week_start": rep.get("week_start") or "",
             "fetched_at": rep.get("fetched_at") or "",
+            "sample_count": rep.get("sample_count") or "",
+            "positive_count": rep.get("positive_count") or "",
             "line": f"数据正常 · {y}年第{w}周 · 来源发布 {rep.get('source_pubdate') or '未提供'}",
             "mom": mom}
 
@@ -342,12 +462,12 @@ def _hist_axis_label(v) -> str:
     return f"{v / 1000:g}k" if v >= 1000 else f"{v:g}"
 
 
-def _hist_nodata(h: dict) -> str:
+def _hist_nodata(h: dict, area: str = "南方片") -> str:
     extra = ""
     if h.get("anchor"):  # 有锚周但无任何有效点：只能是锚周数据异常，不误称等待回补
         y, w = h["anchor"]
         extra = f" · {y}年第{w}周数据异常，未采用"
-    return f'<div class="nodata">暂无可用的南方片历史数据{extra}</div>'
+    return f'<div class="nodata">暂无可用的{_esc(area)}历史数据{extra}</div>'
 
 
 def _hist_src_cell(meta, yy: int, aw: int) -> str:
@@ -358,7 +478,7 @@ def _hist_src_cell(meta, yy: int, aw: int) -> str:
     return '<td class="hist-na">来源未提供</td>'
 
 
-def history_svg(h: dict) -> str:
+def history_svg(h: dict, area: str = "南方片") -> str:
     """多年度同周曲线：横轴固定 ISO 周 1–53，纵轴各年统一（从 0 起的 1-2-5 刻度）。
     历史年画全年，本年只画到锚周；缺口断线，孤立点按年度形状单独标出。"""
     plot = _hist_plot_years(h)
@@ -427,17 +547,17 @@ def history_svg(h: dict) -> str:
             + "本年曲线截至最新已收录周，往年为该年已收录周的曲线，均不是预测。")
     return (f'<svg viewBox="0 0 {W} {H}" style="display:block;width:100%;max-width:{W}px;height:auto" '
             f'role="img" aria-labelledby="hist-title hist-desc" focusable="false">'
-            f'<title id="hist-title">南方片流感指数 · 历年同周对比</title>'
+            f'<title id="hist-title">{_esc(area)}流感指数 · 历年同周对比</title>'
             f'<desc id="hist-desc">{desc}</desc>'
             + "".join(bg + grid + axis + ylab + lines + marks + xlab) + '</svg>')
 
 
-def history_table(h: dict) -> str:
+def history_table(h: dict, area: str = "南方片") -> str:
     """同周对照表（图的文字替代，兼作图例）：6 列；锚年行灰底；
     表包在唯一横向滚动容器内，窄屏只表格滚动、页面不溢出。"""
     plot = _hist_plot_years(h)
     if h.get("empty") or not plot:
-        return _hist_nodata(h)
+        return _hist_nodata(h, area)
     ay, aw = h["anchor"]
     cur = next(y for y in h["years"] if y["year"] == ay)
     hist_only = [y for y in plot if y["year"] != ay]
@@ -492,7 +612,7 @@ def history_table(h: dict) -> str:
         (f'<div class="hist-notice">{notice}</div>' if notice else "")
         + '<div class="hist-scroll-hint">↔ 左右滑动查看完整对照</div>'
         + '<div class="hist-scroll" tabindex="0" role="region" '
-          'aria-label="南方片历年同周对照表，可左右滑动查看">'
+          f'aria-label="{_esc(area)}历年同周对照表，可左右滑动查看">'
         + f'<table class="hist-tbl"><caption>{ay}年第{aw}周与往年同周对照</caption>'
         + '<thead><tr><th scope="col">年份</th><th scope="col">ISO周起</th>'
           '<th scope="col">指数<span class="hist-sub2">Goldstein</span></th>'
@@ -502,13 +622,13 @@ def history_table(h: dict) -> str:
         + f'<div class="src hist-note">{foot}</div>')
 
 
-def history_block(model: dict = None) -> str:
-    """「南方片流感指数 · 历年同周对比」卡正文：曲线 + 图外说明 + 同周表 + 来源。"""
+def history_block(model: dict = None, area: str = "南方片", source_label: str = None) -> str:
+    """「{area}流感指数 · 历年同周对比」卡正文：曲线 + 图外说明 + 同周表 + 来源。"""
     v = model if model is not None else build_flu_view(read_csv(FLU_CSV))
     h = history_data(v)
     plot = _hist_plot_years(h)
     if h["empty"] or not plot:
-        return _hist_nodata(h)
+        return _hist_nodata(h, area)
     ay, aw = h["anchor"]
     has_hist = any(y["year"] != ay for y in plot)
     years = "、".join(str(y["year"]) for y in plot)
@@ -518,13 +638,13 @@ def history_block(model: dict = None) -> str:
     kind = "历史年为该年已收录周的曲线，本年截至最新已收录周，不是预测" if has_hist else "本年截至最新已收录周，不是预测"
     band = "；灰底为本年尚无观测的周次" if aw < 53 else ""
     return (
-        f'<div class="hist-sub">南方片 · Goldstein 相对强度指数（ILI%×流感阳性率）'
+        f'<div class="hist-sub">{_esc(area)} · Goldstein 相对强度指数（ILI%×流感阳性率）'
         f'· {years} 年 · 按 ISO 周序号对齐</div>'
-        + history_svg(h)
-        + f'<div class="src hist-note">指数为相对强度（南方片哨点口径）· {kind}{band}。</div>'
+        + history_svg(h, area)
+        + f'<div class="src hist-note">指数为相对强度（{_esc(area)}哨点口径）· {kind}{band}。</div>'
         + '<div class="src hist-note">横轴为 ISO 周序号 1–53，刻度约对应 1 月初、4 月初、'
           '7 月初、10 月初、年末；纵轴各年统一，低位波动请看下表。</div>'
-        + history_table(h)
+        + history_table(h, area)
         + f'<div class="src hist-note">来源：国家流感中心《中国流感监测周报》（南方片）· '
           f'图中共 {total} 周有效数据（{y0}年第{w0}周–{y1}年第{w1}周）· '
           f'指数为相对强度，非风险等级、感染概率或百分位。</div>')
@@ -636,12 +756,161 @@ def child_block() -> str:
             f'<div class="src">来源：中疾控哨点监测周报表3 · "＞"为检出率位次 · 非成都口径</div>')
 
 
-TPL = """<!DOCTYPE html>
+# ---------------- A2：多页导航、片区名称卡、地方卡 ----------------
+
+SETTINGS = [("门急诊", "门急诊"), ("住院", "住院")]
+
+
+def _card(title: str, body: str) -> str:
+    return f'  <div class="card">\n    <h2>{title}</h2>\n    {body}\n  </div>'
+
+
+def region_rank_block(category: str, area: str) -> str:
+    """片区前三名（仅名称，无百分比）：门急诊与住院两组都必须出现。
+
+    数据源 data/sentinel_rank.csv 的 dimension=region 行；官方只给名称次序，
+    因此不排序、不补百分比；缺任一组即如实标"本工具未取得该组"。
+
+    复核 IMP-07 修正（round-2）：
+    - 官方"排名缺失"占位行的真实格式是 category=全部、setting=全部、
+      status=rank_unavailable（fetch_sentinel.py:307-311）——占位行必须参与
+      本组锚周判断，否则最新周占位会被过滤掉、静默回退旧周充数；
+    - 门急诊/住院各自独立锚定本组最新周（含占位行），某组最新周无排名时
+      如实标"本工具未取得该周前三名排名"，不写"官方未提供"（超出证据）；
+    - 同组同周重复行必须全部一致，冲突判"数据异常，未采用"（不按行序取值）；
+    - 两组各自保留当期来源链接（可能不同周），不再只显示第一组的；
+    - 来源更正：sentinel_rank 来自中疾控《全国急性呼吸道传染病哨点监测情况》
+      表2/表3（fetch_sentinel.py 抓取），不是国家流感中心流感监测周报。
+    """
+    rows = read_csv(RANK_CSV)
+    # 占位行（category=全部/setting=全部）与该片区具体行都算候选：
+    # 占位行代表"该周官方排名整体缺失"，必须能把锚周顶到最新
+    cand = [r for r in rows if (r.get("dimension") or "") == "region"
+            and (r.get("category") or "") in (category, "全部")]
+    head = (f'<div class="meta"><span class="tag">'
+            f'{_esc(area)}前三名 · 仅列名称，无百分比</span></div>')
+    if not cand:
+        return ('<div class="big nodata">—</div><div class="meta">'
+                f'<span class="tag">本工具未取得{_esc(area)}前三名记录</span></div>'
+                '<div class="src">官方周报给名称次序、不给百分比，不可用于定量比较。</div>')
+    groups = []
+    for setting, _label in SETTINGS:
+        # 全局占位行（setting=全部）对本组同样生效
+        srows = [r for r in cand if (r.get("setting") or "") in (setting, "全部")]
+        if not srows:
+            groups.append(f'<div class="childg"><b>{_esc(setting)}</b>'
+                          '<span class="nodata">本工具未取得该组</span></div>')
+            continue
+        try:
+            weeks = sorted({(int(r["iso_year"]), int(r["iso_week"])) for r in srows})
+            target = weeks[-1]  # 本组独立最新周（不回退到旧周充数）
+            tr = [r for r in srows
+                  if (int(r["iso_year"]), int(r["iso_week"])) == target]
+        except (KeyError, ValueError):
+            groups.append(f'<div class="childg"><b>{_esc(setting)}</b>'
+                          '<span class="nodata">数据异常（周次不可解析，未采用）</span></div>')
+            continue
+        y, w = target
+        # 同周重复行一致性：任一字段不一致 = 冲突，不按行序任选（IMP-07）
+        keys = {(r.get("rank1", ""), r.get("rank2", ""), r.get("rank3", ""),
+                 r.get("status", "")) for r in tr}
+        if len(keys) > 1:
+            groups.append(f'<div class="childg"><b>{_esc(setting)}</b>'
+                          f'<span class="nodata">{y}年第{w}周记录重复且不一致，'
+                          '数据异常未采用</span></div>')
+            continue
+        r = tr[0]
+        if r.get("status") == "ok" and (r.get("rank1") or r.get("rank2") or r.get("rank3")):
+            names = " ＞ ".join(x for x in (r.get("rank1"), r.get("rank2"),
+                                            r.get("rank3")) if x)
+            link = _src_link(r.get("source_url"))
+            groups.append(f'<div class="childg"><b>{_esc(setting)}</b>'
+                          f'<span class="chain">{_esc(names)}</span>'
+                          f'<span class="meta">{y}年第{w}周</span>{link}</div>')
+        else:
+            # 只陈述本工具侧事实，不断言官方原因（IMP-07 round-2）
+            groups.append(f'<div class="childg"><b>{_esc(setting)}</b>'
+                          f'<span class="nodata">本工具未取得{y}年第{w}周前三名排名</span></div>')
+    return (head + "".join(groups)
+            + '<div class="meta"><span class="tag">片区哨点 · 两组各自最新周</span>'
+              '<span class="tag">排序非数值</span></div>'
+            + f'<div class="src">来源：中国疾控中心《全国急性呼吸道传染病哨点监测情况》'
+              f'表2（{_esc(area)}名称次序，各组链接为其当期文章）'
+              ' · "＞"为检出率位次，仅列名称。</div>')
+
+
+def _src_link(url: str) -> str:
+    """当期文章链接（URL 白名单校验，非法则文字提示）。"""
+    if not url:
+        return ""
+    if valid_url(url):
+        return (f' <a href="{_esc(url, quote=True)}" target="_blank" '
+                'rel="noopener">当期文章</a>')
+    return ' <span class="unit">来源链接未提供</span>'
+
+
+def hlj_sentinel_block() -> str:
+    """黑龙江 B2 当期部分观测：官方正文公布的样本构成与前几位病原阳性率。
+
+    只展示官方正文明确写出的项，不补 11 病原、不跨样本混算、不生成趋势。
+    """
+    rows = [r for r in read_csv(HLJ_SENT_CSV) if (r.get("status") or "") == "ok"]
+    if not rows:
+        return ('<div class="big">—</div><div class="meta">'
+                '<span class="tag">本工具未取得黑龙江哨点监测记录</span></div>'
+                '<div class="src">官方正文以文字与图片给出部分病原结果，本工具只转写文字部分。</div>')
+    try:
+        y, w = max((int(r["iso_year"]), int(r["iso_week"])) for r in rows)
+    except (KeyError, ValueError):
+        y, w = None, None
+    cur = [r for r in rows if str(r.get("iso_year")) == str(y) and str(r.get("iso_week")) == str(w)]
+    groups = []
+    for setting, _label in SETTINGS:
+        grp = [r for r in cur if (r.get("setting") or "") == setting]
+        if not grp:
+            groups.append(f'<div class="childg"><b>{_esc(setting)}</b>'
+                          '<span class="nodata">本期未公布该组文字结果</span></div>')
+            continue
+        try:
+            grp.sort(key=lambda r: -float(r.get("positive_pct") or 0))
+        except ValueError:
+            pass
+        chains = " · ".join(
+            f'{_esc(r.get("pathogen") or "")} {_esc(r.get("positive_pct") or "")}%' for r in grp)
+        n = grp[0].get("sample_count") or ""
+        tot = grp[0].get("total_samples") or ""
+        cap = f'（标本 {_esc(n)} 份 / 共 {_esc(tot)} 份）' if n and tot else ""
+        groups.append(f'<div class="childg"><b>{_esc(setting)}</b>'
+                      f'<span class="chain">{chains}</span>'
+                      f'<span class="unit">{cap}</span></div>')
+    rep = cur[0] if cur else {}
+    u = valid_url(rep.get("source_url") or "")
+    link = (f'<a href="{_esc(rep.get("source_url") or "", quote=True)}" '
+            'target="_blank" rel="noopener">当期文章</a>' if u else "来源链接未提供")
+    when = f'{y}年第{w}周' if y is not None else ""
+    return ("".join(groups)
+            + f'<div class="meta"><span class="tag">{_esc(when)} · 官方正文部分观测</span>'
+              '<span class="tag">非完整病原表</span></div>'
+            + f'<div class="src">来源：黑龙江省疾病预防控制中心《急性呼吸道传染病哨点监测周报》'
+              f'{link} · 官方正文只列部分病原，未提及不等于 0，本工具不补全。</div>')
+
+
+def chongqing_block() -> str:
+    """重庆：官方入口卡。本工具不转载其正文/数值/图，也不把南方片数值当作重庆实测。"""
+    url = "https://www.cqcdc.org/index.php?a=lists&catid=209"
+    return ('<div class="meta"><span class="tag">官方来源已核实 · 本工具未转成数值</span></div>'
+            '<div class="kv"><span>重庆市疾控中心 · 流感/呼吸道传染病信息列表</span></div>'
+            f'<div class="src">请前往官方页面查看：'
+            f'<a href="{_esc(url, quote=True)}" target="_blank" rel="noopener">重庆市疾控中心</a>'
+            ' · 官方声明未经许可不得复制发布，本工具只提供入口，不转载正文、数值或图片。</div>')
+
+
+PAGE_TPL = """<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>成都 · 呼吸道防护参考</title>
+<title>{title}</title>
 <style>
   body{{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#f5f6f8;color:#222}}
   .wrap{{max-width:640px;margin:0 auto;padding:16px}}
@@ -651,13 +920,14 @@ TPL = """<!DOCTYPE html>
   .card{{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}}
   .card h2{{font-size:15px;margin:0 0 8px;color:#555}}
   .big{{font-size:34px;font-weight:700}}
+  .big.nodata{{font-size:24px;color:#9ca3af;font-weight:400}}
   .unit{{font-size:13px;color:#888;font-weight:400}}
   .kv{{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px;font-size:14px}}
   .kv b{{font-size:18px}}
-  .meta{{margin-top:10px;font-size:12px;color:#999}}
-  .tag{{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;background:#eef4ff;color:#3a6ea5;margin-right:6px}}
+  .meta{{margin-top:10px;font-size:12px;color:#6b7280}}
+  .tag{{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;background:#eef4ff;color:#3a6ea5;margin-right:6px;margin-bottom:2px;max-width:100%;box-sizing:border-box}}
   .adv{{margin:8px 0 0;padding:0 0 0 18px;font-size:13px;color:#444;line-height:1.7}}
-  .src{{font-size:12px;color:#999;margin-top:8px}}
+  .src{{font-size:12px;color:#6b7280;margin-top:8px}}
   .rank{{width:100%;border-collapse:collapse;font-size:14px}}
   .rank th,.rank td{{padding:4px 6px;border-bottom:1px solid #eee;text-align:left}}
   .rank th{{font-size:12px;color:#888;font-weight:400}}
@@ -668,7 +938,7 @@ TPL = """<!DOCTYPE html>
   .childg b{{display:inline-block;min-width:64px;color:#555;font-size:13px}}
   .chain{{color:#222}}
   .nodata{{color:#999;font-size:13px;padding:8px 0}}
-  .foot{{font-size:11px;color:#aaa;margin:16px 0;line-height:1.6}}
+  .foot{{font-size:11px;color:#6b7280;margin:16px 0;line-height:1.6}}
   .hist-sub{{font-size:12px;color:#888;margin:0 0 8px;line-height:1.6}}
   .hist-note{{margin-top:6px;line-height:1.6}}
   .hist-notice{{font-size:13px;color:#8a6d1f;background:#fff8e6;border-left:3px solid #e0b33c;padding:6px 10px;border-radius:4px;margin:8px 0}}
@@ -688,53 +958,63 @@ TPL = """<!DOCTYPE html>
   .hist-sub2{{display:block;font-size:11px;color:#999;font-weight:400;margin-top:1px}}
   .hist-tbl thead .hist-sub2{{display:inline;margin-left:3px}}
   @media (max-width:420px){{ .hist-scroll-hint{{display:block}} }}
+  .search{{margin:0 0 12px}}
+  .search label{{font-size:13px;color:#555;display:block;margin-bottom:6px}}
+  #q{{width:100%;box-sizing:border-box;font-size:16px;padding:10px 12px;border:1px solid #d5dade;border-radius:8px;background:#fff}}
+  #q:focus-visible{{outline:2px solid #3a6ea5;outline-offset:1px}}
+  #q-list{{list-style:none;margin:4px 0 0;padding:4px;background:#fff;border:1px solid #d5dade;border-radius:8px;max-height:260px;overflow:auto}}
+  #q-list .q-item{{padding:8px 10px;border-radius:6px;cursor:pointer;font-size:14px;min-height:44px;box-sizing:border-box}}
+  #q-list .q-item[aria-selected="true"]{{background:#1f2937;color:#fff}}
+  #q-list .q-item .q-sub{{font-size:11px;color:#999;margin-left:6px}}
+  #q-list .q-item[aria-selected="true"] .q-sub{{color:#ddd}}
+  .q-status{{font-size:12px;color:#6b7280;margin-top:6px;min-height:16px;line-height:1.6}}
+  .q-row{{display:flex;gap:8px;align-items:stretch}}
+  .q-row #q{{flex:1 1 auto;min-width:0}}
+  #q[disabled]{{background:#f0f2f4;color:#6b7280;cursor:not-allowed}}
+  .q-btns{{display:flex;gap:6px;flex:none}}
+  .q-btn{{min-height:44px;padding:0 12px;font-size:14px;border:1px solid #d5dade;border-radius:8px;background:#f5f7f9;color:#1f2937;cursor:pointer}}
+  .q-btn:hover{{background:#eef1f4}}
+  .q-btn:focus-visible{{outline:2px solid #3a6ea5;outline-offset:1px}}
+  .q-btn[disabled]{{opacity:.55;cursor:not-allowed}}
+  .q-chip{{font-size:12px;color:#6b7280;margin:6px 0 0}}.q-chip.bad{{color:#b91c1c}}.q-chip.ok{{color:#15803d}}.q-ver{{font-size:11px;color:#9ca3af;margin-top:4px;line-height:1.6}}
+  /* 结果区标题可编程聚焦（tabindex=-1），不显示焦点框 */
+  #query-view h2:focus{{outline:none}}
+  #query-view h2:focus-visible{{outline:2px solid #3a6ea5;outline-offset:1px}}
+  @media (max-width:520px){{ .q-row{{display:block}} .q-btns{{margin-top:6px}} .q-btn{{flex:1}} }}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>成都 · 呼吸道防护参考</h1>
-  <div class="sub">分块证据 · 各自口径 · 不合成总分</div>
+  <h1>{h1}</h1>
+  <div class="sub">{sub}</div>
+{searchbox}
+<div id="default-view">
   {run_banner}
   {banner}
-  <div class="card">
-    <h2>四川官方流感分级（月度 · 成都=平原区）</h2>
-    {sc_body}
-  </div>
-  <div class="card">
-    <h2>南方片流感趋势（周度）</h2>
-    {flu_body}
-  </div>
-  <div class="card">
-    <h2>南方片流感指数 · 历年同周对比</h2>
-    {hist_body}
-  </div>
-  <div class="card">
-    <h2>全国多病原活跃度排行（周度）</h2>
-    {rank_body}
-  </div>
-  <div class="card">
-    <h2>流感 / 新冠 / RSV 趋势（周度 · 本年度）</h2>
-    {trend_body}
-  </div>
-  <div class="card">
-    <h2>儿童分龄高发前三（周度）</h2>
-    {child_body}
-  </div>
+{cards}
+</div>
+{templates}
   <div class="foot">
-    口径说明：四川分级为省疾控平原区（月度）；流感指数为南方片哨点（周度）；多病原排行/趋势/儿童卡均为
-    全国哨点口径（非成都实测）。排序为名称非数值；箭头仅表较上周方向；Goldstein 指数为相对强度指数
-    （ILI%×阳性率），非人群感染率。
-    据中疾控《版权与免责声明》注明：稿件来源：中国疾病预防控制中心；WHO FluNet 数据为国家层面公开数据。
+{foot}
     页面生成时间：{gen} · 数据以官方发布为准。
   </div>
 </div>
+<script type="application/json" id="catalog-data">{catalog_data}</script>
+<script type="application/json" id="recipes-data">{recipes_data}</script>
+{search_js}
 </body>
 </html>
 """
 
 
 def flu_body_html(flu: dict) -> str:
-    """流感卡正文（S4-B01/B02）：动态内容全转义、URL 白名单、无效周次计数上屏。"""
+    """流感卡正文（S4-B01/B02）：动态内容全转义、URL 白名单、无效周次计数上屏。
+
+    A2：字段名与来源文案由 flu_block 的 ili_field/pos_field/source_label 参数化。
+    """
+    ili_f = flu.get("ili_field") or "south_ili_pct"
+    pos_f = flu.get("pos_field") or "south_flu_positive_pct"
+    src_label = flu.get("source_label") or "国家流感中心《中国流感监测周报》"
     n_bad = flu.get("invalid_rows") or 0
     note = (f'<span class="tag">已忽略 {n_bad} 条无效周次记录</span>'
             if n_bad else "")
@@ -744,54 +1024,836 @@ def flu_body_html(flu: dict) -> str:
             if u else "来源链接未提供")
     if flu.get("anchor_bad"):
         return f"""
-    <div class="big">—<span class="unit"> 数据异常，未采用</span></div>
+    <div class="big nodata">—<span class="unit"> 数据异常，未采用</span></div>
     <div class="kv"><span>{_esc(flu.get('iso_year',''))}年第<b>{_esc(flu.get('iso_week',''))}</b>周</span></div>
     <div class="meta"><span class="tag">{_esc(flu.get('line',''))}</span><span class="tag">{_esc(flu.get('mom',''))}</span>{note}</div>
-    <div class="src">来源：国家流感中心《中国流感监测周报》 {link}</div>"""
+    <div class="src">来源：{_esc(src_label)} {link}</div>"""
     if flu["state"] == "ok":
         return f"""
     <div class="big">{_esc(flu.get('goldstein_index',''))}<span class="unit"> Goldstein 指数（相对强度）</span></div>
     <div class="kv">
-      <span>ILI% <b>{_esc(flu.get('south_ili_pct',''))}%</b></span>
-      <span>流感阳性率 <b>{_esc(flu.get('south_flu_positive_pct',''))}%</b></span>
+      <span>ILI% <b>{_esc(flu.get(ili_f,''))}%</b></span>
+      <span>流感阳性率 <b>{_esc(flu.get(pos_f,''))}%</b></span>
       <span>{_esc(flu.get('iso_year',''))}年第<b>{_esc(flu.get('iso_week',''))}</b>周</span>
     </div>
     <div class="meta"><span class="tag">{_esc(flu.get('line',''))}</span><span class="tag">{_esc(flu.get('mom',''))}</span>{note}</div>
-    <div class="src">来源：国家流感中心《中国流感监测周报》 {link}</div>"""
+    <div class="src">来源：{_esc(src_label)} {link}</div>"""
     if flu.get("empty_note"):
-        return f"""<div class="big">—</div><div class="meta"><span class="tag">暂无可用数据 · 存在未成功获取的记录 · 请运行更新</span>{note}</div>"""
-    return f"""<div class="big">—</div><div class="meta"><span class="tag">暂无数据 · 请运行更新</span>{note}</div>"""
+        return f"""<div class="big nodata">—</div><div class="meta"><span class="tag">暂无可用数据 · 存在未成功获取的记录 · 请运行更新</span>{note}</div>"""
+    if flu.get("never_collected") and (flu.get("area") or "南方片") != "南方片":
+        return (f"""<div class="big nodata">—</div><div class="meta"><span class="tag">本工具未取得"""
+                f"""{_esc(flu.get("area") or "")}该产品的周报数据</span>{note}</div>"""
+                f"""<div class="src">来源：{_esc(src_label)} {link}</div>""")
+    return f"""<div class="big nodata">—</div><div class="meta"><span class="tag">暂无数据 · 请运行更新</span>{note}</div>"""
 
 
-def render() -> None:
-    model = build_flu_view(read_csv(FLU_CSV))  # 一次读取：流感卡与历史卡共用同一规范化视图
-    flu = flu_block(model)
-    sc = sichuan_block()
+def _cli_opts(argv):
+    """A2 §4：解析构建状态参数。--local 无显式状态；--run-status/--run-id 成对显式传入。"""
+    opts = {"local": False, "run_status": None, "run_id": None}
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a == "--local":
+            opts["local"] = True
+        elif a in ("--run-status", "--run-id"):
+            i += 1
+            if i >= len(argv):
+                print(f"{a} 缺少取值", file=sys.stderr)
+                raise SystemExit(2)
+            opts["run_status" if a == "--run-status" else "run_id"] = argv[i]
+        else:
+            print(f"未知参数：{a}\n用法：--local | --run-status <path> --run-id <id>",
+                  file=sys.stderr)
+            raise SystemExit(2)
+        i += 1
+    if (opts["run_status"] is None) != (opts["run_id"] is None):
+        print("--run-status 与 --run-id 必须成对出现", file=sys.stderr)
+        raise SystemExit(2)
+    return opts
 
-    flu_body = flu_body_html(flu)
 
+def _sc_body(sc: dict) -> str:
     if sc["state"] == "ok":
         advice = "".join(f"<li>{a}</li>" for a in sc["advice"])
-        sc_body = f"""
+        return f"""
     <div class="big">{sc['level']} 级 · {sc['level_name']}<span class="unit">（{sc['year']}年{sc['month']}月）</span></div>
     <div class="meta"><span class="tag">{sc['line']}</span><span class="tag">省级官方分级</span></div>
     <ol class="adv">{advice}</ol>
     <div class="src">防控建议为官方原文：四川省疾控"流感指数分级标准表" {sc['level']} 级 · <a href="{sc['source_url']}" target="_blank">当期发布</a></div>"""
-    else:
-        sc_body = """<div class="big">？</div><div class="meta"><span class="tag">官方分级未获取 · 状态未知</span></div>"""
+    return '<div class="big">？</div><div class="meta"><span class="tag">官方分级未获取 · 状态未知</span></div>'
 
-    banner_html = (f'<div class="banner">⚠ {flu["banner"]}</div>'
-                   if flu.get("banner") else "")
-    html = TPL.format(run_banner=run_banner(local="--local" in sys.argv),
-                      banner=banner_html, flu_body=flu_body,
-                      hist_body=history_block(model),
-                      sc_body=sc_body, rank_body=ranking_block(),
-                      trend_body=trend_block(), child_body=child_block(),
-                      gen=date.today().isoformat())
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(html, encoding="utf-8")
-    print(f"已生成 {OUT}")
+
+FOOT_COMMON = ("    本工具不合成综合风险总分，各块独立标注口径；排序为名称非数值；"
+               "箭头仅表较上周方向；Goldstein 指数为相对强度指数（ILI%×阳性率），非人群感染率。\n"
+               "    据中疾控《版权与免责声明》注明：稿件来源：中国疾病预防控制中心；"
+               "WHO FluNet 数据为国家层面公开数据。\n")
+
+FOOT_CD = ("    口径说明：四川分级为省疾控平原区（月度）；流感指数为南方片哨点（周度）；"
+           "多病原排行/趋势/儿童卡均为全国哨点口径（非成都实测）。\n"
+            "    查询结果中：黑龙江为省级官方周报口径；重庆仅官方入口；其余省市无当地数据时"
+            "只展示省级/片区/全国参考，均明确标注，不冒充当地实测。\n")
+
+
+CARD_TITLES = {
+    "sc": "四川官方流感分级（月度 · 成都=平原区）",
+    "flu_south": "南方片流感趋势（周度）",
+    "flu_north": "北方片流感趋势（周度）",
+    "flu_hlj": "黑龙江流感指数（省级周报 · 周度）",
+    "hist_south": "南方片流感指数 · 历年同周对比",
+    "names_south": "南方片门急诊 / 住院前三名（周度）",
+    "names_north": "北方片门急诊 / 住院前三名（周度）",
+    "hlj_sent": "黑龙江哨点监测 · 官方正文部分观测（周度）",
+    "rank": "全国多病原活跃度排行（周度）",
+    "trend": "流感 / 新冠 / RSV 趋势（周度 · 本年度）",
+    "child": "儿童分龄高发前三（周度）",
+    "cq": "重庆 · 官方入口",
+}
+
+
+def _build_cards(views: dict):
+    """按卡片键生成正文；视图一次构建复用（搜索版：默认页与查询模板共用）。
+
+    返回 (cards, available)：available 为「有内容可建卡」的键集合，用于裁剪空壳卡
+    （display-proposal §5c：无数据不建卡）。
+    """
+    out = {}
+    for key in ("flu_south", "flu_north", "flu_hlj"):
+        out[key] = flu_body_html(views["flu_" + key.split("_")[1]])
+    out["sc"] = _sc_body(sichuan_block())
+    out["hist_south"] = history_block(views["flu_south_view"], area="南方片")
+    drop = set()
+    # 历史卡无任何可绘制年份时不建卡（north 首版常见）
+    for hist_key, view_key in (("hist_south", "flu_south_view"),):
+        h = history_data(views[view_key])
+        if h["empty"] or not _hist_plot_years(h):
+            drop.add(hist_key)
+    out["names_south"] = region_rank_block("南方省份", "南方片")
+    out["names_north"] = region_rank_block("北方省份", "北方片")
+    out["hlj_sent"] = hlj_sentinel_block()
+    out["rank"] = ranking_block()
+    out["trend"] = trend_block()
+    out["child"] = child_block()
+    out["cq"] = chongqing_block()
+    return out, drop
+
+
+SEARCH_JS = ("<script>" + r"""
+/* A2 省市查询（S2 内联交互）：页面不联网，全部候选来自内嵌目录 JSON。
+   - 控件默认 disabled；init 全部成功（目录解析/元素绑定/事件注册/首渲染）后才启用。
+     任何异常→控件保持不可点，#q-status 常驻降级说明，成都默认内容保持完整可读。
+   - 只过滤目录里 q=1 的单位；港澳台占位（q=0）永不进入候选。
+   - 用户输入只用于匹配；落屏一律 textContent / createTextNode / cloneNode，绝不拼 HTML。
+   - 结果区按 recipes-data 的槽位顺序克隆 <template>，脚本不计算任何数值或口径。
+   - 清空输入、收起候选、Esc 都不改变当前已显示的结果；只有「查询」/点选候选/「回成都」切换视图。 */
+(function () {
+  "use strict";
+
+  var MAX_CANDIDATES = 8;
+  var FAIL_TEXT = "搜索功能初始化失败，页面按成都默认内容展示";
+  var BASE_STATUS_TAIL = " 个单位，可换用简称或上级地名。";
+  /* 复核 A01：不在运行时剥行政后缀（不猜"哈尔滨市"→"哈尔滨"这类改写），
+     只按 规范名/审核别名 的 精确 → 前缀 → 包含 三级匹配。"哈尔滨"作为
+     "哈尔滨市"的前缀本就能命中；简称一律走目录 aliases 审核列。 */
+  var TYPE_WORDS = { province: "省级", prefecture: "地级", province_direct_county: "省直辖县级" };
+
+  function fatal() {
+    var st = document.getElementById("q-status");
+    if (st) { st.textContent = FAIL_TEXT; }
+    var dv = document.getElementById("default-view");
+    if (dv) { dv.hidden = false; }
+    var qv = document.getElementById("query-view");
+    if (qv) { qv.hidden = true; }
+  }
+
+  function normalize(text) {
+    var out = "";
+    for (var i = 0; i < text.length; i++) {
+      var code = text.charCodeAt(i);
+      var ch = text.charAt(i);
+      if (code === 0x3000) { continue; }
+      if (code >= 0xff01 && code <= 0xff5e) { ch = String.fromCharCode(code - 0xfee0); }
+      if (ch === " " || ch === "\t" || ch === "\n" || ch === "\r") { continue; }
+      out += ch;
+    }
+    return out.toLowerCase();
+  }
+
+  function init() {
+    var qEl = document.getElementById("q");
+    var listEl = document.getElementById("q-list");
+    var statusEl = document.getElementById("q-status");
+    var queryView = document.getElementById("query-view");
+    var defaultView = document.getElementById("default-view");
+    var goBtn = document.getElementById("q-go");
+    var clearBtn = document.getElementById("q-clear");
+    var homeBtn = document.getElementById("q-home");
+    if (!qEl || !listEl || !statusEl || !queryView || !defaultView ||
+        !goBtn || !clearBtn || !homeBtn) {
+      throw new Error("search elements missing");
+    }
+    var catalogRaw = document.getElementById("catalog-data");
+    var recipesRaw = document.getElementById("recipes-data");
+    if (!catalogRaw || !recipesRaw) { throw new Error("embedded data missing"); }
+    var rows = JSON.parse(catalogRaw.textContent);
+    var recipes = JSON.parse(recipesRaw.textContent);
+    if (!rows || typeof rows.length !== "number" || !recipes || typeof recipes !== "object") {
+      throw new Error("embedded data malformed");
+    }
+
+    var units = [];
+    var byId = {};
+    for (var ri = 0; ri < rows.length; ri++) {
+      var row = rows[ri];
+      if (!row || row.q !== 1) { continue; }
+      var aliases = [];
+      var rawAliases = row.a || [];
+      for (var ai = 0; ai < rawAliases.length; ai++) {
+        var al = normalize(rawAliases[ai]);
+        if (al) { aliases.push(al); }
+      }
+      var unit = {
+        id: row.i,
+        name: row.n,
+        type: row.t,
+        parent: row.p,
+        aliases: aliases,
+        norm: normalize(row.n)
+      };
+      units.push(unit);
+      byId[unit.id] = unit;
+    }
+    if (!units.length) { throw new Error("catalog empty"); }
+
+    var items = [];
+    var activeIdx = -1;
+
+    function say(text) { statusEl.textContent = text; }
+
+    function listOpen() { return !listEl.hidden; }
+
+    function closeList() {
+      listEl.hidden = true;
+      qEl.setAttribute("aria-expanded", "false");
+      if (qEl.hasAttribute("aria-activedescendant")) {
+        qEl.removeAttribute("aria-activedescendant");
+      }
+      activeIdx = -1;
+    }
+
+    function setActive(idx) {
+      var kids = listEl.children;
+      for (var k = 0; k < kids.length; k++) {
+        kids[k].setAttribute("aria-selected", k === idx ? "true" : "false");
+      }
+      if (idx >= 0 && kids[idx]) {
+        qEl.setAttribute("aria-activedescendant", kids[idx].id);
+        activeIdx = idx;
+      } else {
+        if (qEl.hasAttribute("aria-activedescendant")) {
+          qEl.removeAttribute("aria-activedescendant");
+        }
+        activeIdx = -1;
+      }
+    }
+
+    function subLine(unit) {
+      var parts = [];
+      if (TYPE_WORDS[unit.type]) { parts.push(TYPE_WORDS[unit.type]); }
+      if (unit.parent && byId[unit.parent]) { parts.push(byId[unit.parent].name); }
+      return parts.join(" · ");
+    }
+
+    function optionNode(unit, idx) {
+      var li = document.createElement("li");
+      li.className = "q-item";
+      li.id = "q-opt-" + idx;
+      li.setAttribute("role", "option");
+      li.setAttribute("aria-selected", "false");
+      var nameSpan = document.createElement("span");
+      nameSpan.textContent = unit.name;
+      li.appendChild(nameSpan);
+      var subSpan = document.createElement("span");
+      subSpan.className = "q-sub";
+      subSpan.textContent = "  " + subLine(unit);
+      li.appendChild(subSpan);
+      li.addEventListener("mousedown", function (ev) {
+        ev.preventDefault();
+        selectAt(idx);
+      });
+      return li;
+    }
+
+    function openList(matches) {
+      while (listEl.firstChild) { listEl.removeChild(listEl.firstChild); }
+      items = matches;
+      if (!items.length) { closeList(); return; }
+      for (var n = 0; n < items.length; n++) { listEl.appendChild(optionNode(items[n], n)); }
+      listEl.hidden = false;
+      qEl.setAttribute("aria-expanded", "true");
+      setActive(-1); /* 复核 01：多候选必须显式选中，不默认激活第一项 */
+    }
+
+    /* 复核 A01：三级匹配，不再运行时剥后缀。
+       0 精确（规范名或审核别名全等）→ 1 前缀（规范名或别名）→ 2 包含（规范名或别名）。
+       同级内先短名后长名，最后按 id 稳定排序。 */
+    function matchScore(unit, needle) {
+      if (unit.norm === needle) { return 0; }
+      var i;
+      for (i = 0; i < unit.aliases.length; i++) {
+        if (unit.aliases[i] === needle) { return 0; }
+      }
+      if (unit.norm.indexOf(needle) === 0) { return 1; }
+      for (i = 0; i < unit.aliases.length; i++) {
+        if (unit.aliases[i].indexOf(needle) === 0) { return 1; }
+      }
+      if (unit.norm.indexOf(needle) >= 0) { return 2; }
+      for (i = 0; i < unit.aliases.length; i++) {
+        if (unit.aliases[i].indexOf(needle) >= 0) { return 2; }
+      }
+      return -1;
+    }
+
+    function search(needle) {
+      var hits = [];
+      for (var i = 0; i < units.length; i++) {
+        var score = matchScore(units[i], needle);
+        if (score >= 0) { hits.push({ unit: units[i], score: score }); }
+      }
+      hits.sort(function (a, b) {
+        if (a.score !== b.score) { return a.score - b.score; }
+        if (a.unit.name.length !== b.unit.name.length) {
+          return a.unit.name.length - b.unit.name.length;
+        }
+        return a.unit.id < b.unit.id ? -1 : (a.unit.id > b.unit.id ? 1 : 0);
+      });
+      var out = [];
+      for (var k = 0; k < hits.length && k < MAX_CANDIDATES; k++) { out.push(hits[k].unit); }
+      return out;
+    }
+
+    function clearQueryView() {
+      while (queryView.firstChild) { queryView.removeChild(queryView.firstChild); }
+    }
+
+    function showDefault(msg) {
+      clearQueryView();
+      queryView.hidden = true;
+      defaultView.hidden = false;
+      if (msg) { say(msg); }
+    }
+
+    /* 先在离屏 staging 里拼好，再整体替换并一次性显示（避免半成品闪屏）。 */
+    function renderResult(unit, slots) {
+      var staging = document.createElement("div");
+      var missing = [];
+      for (var s = 0; s < slots.length; s++) {
+        var slot = slots[s];
+        var tpl = document.getElementById("tpl-" + slot);
+        if (!tpl) { missing.push(slot); continue; }
+        staging.appendChild(tpl.content.cloneNode(true));
+      }
+      if (missing.length) {
+        /* 复核 04：缺模板即失败恢复完整成都默认视图，不半新半旧展示 */
+        showDefault(unit.name + " 数据模块缺失（" + missing.join("、") +
+                    "），已恢复成都默认。");
+        return;
+      }
+      clearQueryView();
+      while (staging.firstChild) { queryView.appendChild(staging.firstChild); }
+      queryView.hidden = false;
+      defaultView.hidden = true;
+      say(unit.name + "：按该地区可用数据分块展示，各块自标口径与数据状态。");
+      var heading = queryView.querySelector("h2, h3, h1");
+      if (heading) {
+        heading.setAttribute("tabindex", "-1");
+        heading.focus();
+      } else {
+        queryView.setAttribute("tabindex", "-1");
+        queryView.focus();
+      }
+    }
+
+    function selectUnit(unit) {
+      try {
+        var slots = recipes[unit.id];
+        if (!slots || !slots.length) {
+          say("该地区暂无可查询的数据配方（" + unit.name + "）。");
+          return;
+        }
+        if (slots.length === 1 && slots[0] === "chengdu_default") {
+          closeList();
+          qEl.value = "";
+          showDefault("已恢复成都默认");
+          return;
+        }
+        closeList();
+        qEl.value = unit.name;
+        renderResult(unit, slots);
+      } catch (err) {
+        /* 复核 04：查询切换入口统一捕获——克隆/渲染异常恢复成都默认 */
+        showDefault("查询切换失败（" + (err && err.message ? err.message : err) +
+                    "），已恢复成都默认。");
+      }
+    }
+
+    function selectAt(idx) {
+      if (idx >= 0 && items[idx]) { selectUnit(items[idx]); }
+    }
+
+    function noMatchText() {
+      return "未找到匹配的省市。目录共 " + units.length + BASE_STATUS_TAIL;
+    }
+
+    function handleInput() {
+      var needle = normalize(qEl.value);
+      if (!needle) {
+        items = []; /* 复核 01：手动删空输入须废弃旧候选，防 Enter 误选 */
+        closeList();
+        say("输入为空：候选已清空，当前显示结果保持不变。");
+        return;
+      }
+      var matches = search(needle);
+      if (!matches.length) {
+        openList([]);
+        say(noMatchText());
+        return;
+      }
+      openList(matches);
+      say("匹配到 " + matches.length + " 个地区，用 ↑↓ 选择、回车确认，或直接点列表项。");
+    }
+
+    function onGo() {
+      var needle = normalize(qEl.value);
+      if (!needle) {
+        say("请先输入省市名称，再点「查询」。");
+        qEl.focus();
+        return;
+      }
+      if (listOpen() && items.length === 1) { selectAt(0); return; }
+      if (listOpen() && items.length > 1) {
+        say("匹配到 " + items.length + " 个地区，请从列表中选择。");
+        return;
+      }
+      var matches = search(needle);
+      if (!matches.length) { say(noMatchText()); return; }
+      if (matches.length === 1) { selectUnit(matches[0]); return; }
+      openList(matches);
+      say("匹配到 " + matches.length + " 个地区，请从列表中选择。");
+    }
+
+    /* 清空只管输入框与候选：不切视图、不动已显示的结果。 */
+    function onClear() {
+      qEl.value = "";
+      items = [];
+      closeList();
+      say("已清空输入与候选，当前显示结果未变。");
+      qEl.focus();
+    }
+
+    function onHome() {
+      qEl.value = "";
+      items = [];
+      closeList();
+      showDefault("已恢复成都默认");
+    }
+
+    function onKeyDown(ev) {
+      var key = ev.key;
+      if (key === "ArrowDown") {
+        if (!listOpen() || !items.length) { return; }
+        ev.preventDefault();
+        setActive(activeIdx + 1 >= items.length ? 0 : activeIdx + 1);
+        return;
+      }
+      if (key === "ArrowUp") {
+        if (!listOpen() || !items.length) { return; }
+        ev.preventDefault();
+        setActive(activeIdx - 1 < 0 ? items.length - 1 : activeIdx - 1);
+        return;
+      }
+      if (key === "Enter") {
+        ev.preventDefault();
+        if (listOpen() && activeIdx >= 0 && items[activeIdx]) { selectAt(activeIdx); return; }
+        if (items.length === 1) { selectAt(0); return; }
+        onGo();
+        return;
+      }
+      if (key === "Escape") {
+        /* 分层（复核 01）：第一下收起列表；列表已收起时再按一次仅清空输入，
+           不改变已显示的结果、不回成都。 */
+        ev.preventDefault();
+        if (listOpen()) {
+          closeList();
+          say("已收起候选列表，再按一次 Esc 清空输入。");
+        } else {
+          qEl.value = "";
+          items = [];
+          say("已清空输入，当前显示结果未变。");
+        }
+        return;
+      }
+      if (key === "Tab") { closeList(); }
+    }
+
+    function onDocKeyDown(ev) {
+      if (ev.key !== "Escape") { return; }
+      if (listOpen()) { closeList(); }
+    }
+
+    function onDocMouseDown(ev) {
+      if (!listOpen()) { return; }
+      if (ev.target === qEl || listEl.contains(ev.target)) { return; }
+      closeList();
+    }
+
+    qEl.addEventListener("input", handleInput);
+    qEl.addEventListener("keydown", onKeyDown);
+    goBtn.addEventListener("click", onGo);
+    clearBtn.addEventListener("click", onClear);
+    homeBtn.addEventListener("click", onHome);
+    document.addEventListener("keydown", onDocKeyDown);
+    document.addEventListener("mousedown", onDocMouseDown);
+
+    closeList();
+    qEl.disabled = false;
+    goBtn.disabled = false;
+    clearBtn.disabled = false;
+    homeBtn.disabled = false;
+    say("已就绪：目录共 " + units.length + " 个单位，输入省市名称开始查询（页面不联网）。");
+  }
+
+  try {
+    init();
+  } catch (err) {
+    fatal();
+  }
+})();
+""" + "</" + "script>")  # S2 内联交互脚本；收尾标签拆写，避免字符串内出现字面结束标签
+
+
+def _embed_json(obj) -> str:
+    """内嵌 <script type="application/json"> 内容（S1b）。
+
+    `<` 转义为 \\u003c，防止数据文本提前终止 script 块；调用方不再转义。
+    """
+    import json as _json
+    txt = obj if isinstance(obj, str) else _json.dumps(
+        obj, ensure_ascii=False, separators=(",", ":"))
+    return txt.replace("<", "\\u003c")
+
+
+def _search_scaffold() -> str:
+    """搜索区静态骨架（S1b，design r4 §3）：S2 只补内联脚本，不改此结构。
+
+    降级契约（复核 A2-SEARCH-04）：输入框与三按钮默认 disabled，初始化成功后
+    才启用；脚本失败时控件保持不可点，状态区常驻说明，成都默认内容完整可读。
+    """
+    return """
+  <section class="search" aria-label="查询其他省市">
+    <label for="q">查询其他省市（本地目录 · 页面不联网）</label>
+    <div class="q-row">
+      <input id="q" type="text" role="combobox" aria-expanded="false"
+             aria-controls="q-list" aria-autocomplete="list" autocomplete="off"
+             placeholder="输入省市名称，如：哈尔滨 / 广东 / 重庆" disabled>
+      <div class="q-btns">
+        <button type="button" id="q-go" class="q-btn" disabled>查询</button>
+        <button type="button" id="q-clear" class="q-btn" disabled>清空</button>
+        <button type="button" id="q-home" class="q-btn" disabled>回成都</button>
+      </div>
+    </div>
+    <ul id="q-list" role="listbox" aria-label="候选地区" hidden></ul>
+    <div id="q-status" class="q-status" role="status" aria-live="polite">搜索组件加载中…若本提示未消失，说明内联脚本未完成初始化，搜索暂不可用；下方成都默认数据不受影响。</div>
+    <p class="q-ver">目录版本：民政部 2025 年末 + CC0 areacodes（含 dmfw 补录 1 条）</p>
+    <div id="query-view" hidden></div>
+    <noscript><div class="q-status">浏览器脚本不可用：仅显示成都默认内容；
+      查询功能需启用 JavaScript（数据已内嵌本页，不联网）。</div></noscript>
+  </section>"""
+
+
+def _src_chip(status, key: str) -> str:
+    """A2-SEARCH-03：把本轮该源的获取状态渲染进对应模板。
+
+    无本轮状态（本地直构建未传 --run-status）不显示 chip；状态由
+    write_run_status 聚合，本函数不做任何推定。
+    """
+    if not isinstance(status, dict):
+        return ""
+    src = (status.get("sources") or {}).get(key)
+    if not isinstance(src, dict):
+        # 复核 03：本轮状态存在但缺该源键 = 状态未知，不静默返回空串
+        return '<div class="q-chip">本轮获取：状态未知</div>'
+    st = src.get("status")
+    words = {"ok": ("ok", "本轮获取：成功"),
+             "skipped": ("", "本轮获取：未执行"),
+             "failed": ("bad", "本轮获取：失败 · 下方为最近一次成功数据"),
+             "unknown": ("", "本轮获取：状态未知")}
+    cls, txt = words.get(st, ("", "本轮获取：状态未知"))
+    return f'<div class="q-chip {cls}">{txt}</div>'
+
+
+def _compute_chip(status, target: str) -> str:
+    """A2-SEARCH-03 round-2：指数计算四态 chip（ok/failed/skipped/缺键=未知）。
+
+    只读 write_run_status 聚合的 compute 段，不做推定；无本轮状态返回空串。
+    """
+    if not isinstance(status, dict):
+        return ""
+    comp = status.get("compute") or {}
+    raw = comp.get(target)
+    if not isinstance(raw, dict) or raw.get("status") is None:
+        return '<div class="q-chip">指数计算：状态未知</div>'
+    st = raw.get("status")
+    if st == "ok":
+        return '<div class="q-chip ok">指数计算：已完成</div>'
+    if st == "failed":
+        return '<div class="q-chip bad">指数计算：未完成 · 下方为最近一次成功数据</div>'
+    if st == "skipped":
+        return '<div class="q-chip">指数计算：未执行</div>'
+    return '<div class="q-chip">指数计算：状态未知</div>'
+
+
+def _view_banner(view: dict) -> str:
+    """产品自身数据横幅（锚周异常/较新失败，来自 flu_block），注入对应模板。"""
+    b = view.get("banner")
+    return f'<div class="banner">⚠ {b}</div>' if b else ""
+
+
+def _slot_templates(views: dict, cards: dict, status=None) -> dict:
+    """A2 design r4 §3：槽位名 → 服务端预渲染卡片片段。
+
+    JS 只按配方（recipes-data）克隆模板，不计算任何数据口径；
+    槽位名与 src/search_catalog.py recipe() 白名单逐字对齐。
+    """
+    hlj_flu = (flu_body_html(views["flu_hlj"]) + _view_banner(views["flu_hlj"])
+               + _src_chip(status, "heilongjiang_flu")
+               + _compute_chip(status, "heilongjiang"))
+    hlj_sent = cards["hlj_sent"] + _src_chip(status, "heilongjiang_sentinel")
+    south_body = (cards["flu_south"] + _view_banner(views["flu_south"])
+                  + _src_chip(status, "flu_south")
+                  + _compute_chip(status, "south"))
+    north_body = (cards["flu_north"] + _view_banner(views["flu_north"])
+                  + _src_chip(status, "flu_north")
+                  + _compute_chip(status, "north"))
+    chip_sent = _src_chip(status, "sentinel")
+    prov_note = '<div class="src">省级数据 · 非该市实测：</div>'
+    return {
+        "local_hlj_flu": _card(CARD_TITLES["flu_hlj"], hlj_flu),
+        "local_hlj_sent": _card(CARD_TITLES["hlj_sent"], hlj_sent),
+        "prov_hlj_flu": _card("黑龙江流感指数 · 省级参考（非该市实测）",
+                              prov_note + hlj_flu),
+        "prov_hlj_sent": _card("黑龙江哨点监测 · 省级参考（非该市实测）",
+                               prov_note + hlj_sent),
+        "zone_flu_south": _card(CARD_TITLES["flu_south"], south_body),
+        "zone_flu_north": _card(CARD_TITLES["flu_north"], north_body),
+        "zone_names_south": _card(CARD_TITLES["names_south"],
+                                  cards["names_south"] + chip_sent),
+        "zone_names_north": _card(CARD_TITLES["names_north"],
+                                  cards["names_north"] + chip_sent),
+        "national_rank": _card(CARD_TITLES["rank"],
+                             cards["rank"] + chip_sent),
+        "cq_links": _card(CARD_TITLES["cq"], cards["cq"]),
+        "local_nodata": _card(
+            "当地监测数据",
+            '<div class="big nodata">—</div>'
+            '<div class="meta"><span class="tag">本工具未取得该地区官方监测数据</span></div>'
+            '<div class="src">目录覆盖不等于数据覆盖；下方省级 / 片区 / 全国块为参考，非当地实测。</div>'),
+        "prov_nodata": _card(
+            "省级参考",
+            '<div class="big nodata">—</div>'
+            '<div class="meta"><span class="tag">本工具未取得该省省级监测数据</span></div>'),
+    }
+
+def render(opts=None) -> None:
+    global RUN_STATUS
+    opts = opts or {"local": "--local" in sys.argv, "run_status": None, "run_id": None}
+    if opts.get("run_status"):
+        RUN_STATUS = Path(opts["run_status"]).resolve()
+        if not RUN_STATUS.exists():
+            print(f"显式状态文件不存在：{RUN_STATUS}", file=sys.stderr)
+            raise SystemExit(2)
+    elif not opts.get("local") and RUN_STATUS.exists():
+        # 云端无显式状态：只读已保存状态作历史运行信息，绝不称"本次"
+        try:
+            import json as _json
+            if _json.loads(RUN_STATUS.read_text(encoding="utf-8")).get("schema") == 2:
+                opts = dict(opts, run_id="__history__")
+        except Exception:
+            pass
+
+    # 状态一次载入（复核 IMP-04）：本地管线显式传入 pre_status 时也显示本轮横幅
+    status_obj = None
+    if opts.get("run_status") or (not opts.get("local") and RUN_STATUS.exists()):
+        try:
+            import json as _json
+            status_obj = _json.loads(RUN_STATUS.read_text(encoding="utf-8"))
+        except Exception:
+            status_obj = "bad"
+    # 显式状态完整校验（复核 IMP-04 round-3 关闭条件）：显式传入的状态
+    # 必须完整满足 v2 契约——可解析 JSON 对象 + schema==2 + run_id 匹配 +
+    # origin 合法 + sources 结构存在。显式状态来自同一条管线，不完整说明
+    # 管线已损坏，拒绝构建而不是含糊降级出页；无显式状态的本地/云端路径
+    # 不受影响（本地ℹ注明、云端坏文件按"无法解析"横幅诚实降级）。
+    if opts.get("run_status"):
+        if not isinstance(status_obj, dict) or status_obj == "bad":
+            print("显式状态文件不可解析或不是 JSON 对象，拒绝构建", file=sys.stderr)
+            raise SystemExit(2)
+        if status_obj.get("schema") != RUN_STATUS_V2:
+            print(f"显式状态 schema 不符（期望 {RUN_STATUS_V2}，"
+                  f"得到 {status_obj.get('schema')!r}），拒绝构建", file=sys.stderr)
+            raise SystemExit(2)
+        if status_obj.get("run_id") != opts.get("run_id"):
+            print(f"状态文件 run_id {status_obj.get('run_id')!r} 与参数 "
+                  f"{opts.get('run_id')!r} 不符，拒绝构建", file=sys.stderr)
+            raise SystemExit(2)
+        if status_obj.get("origin") not in ("local", "cloud"):
+            print(f"显式状态 origin 无效：{status_obj.get('origin')!r}，拒绝构建",
+                  file=sys.stderr)
+            raise SystemExit(2)
+        if not isinstance(status_obj.get("sources"), dict):
+            print("显式状态缺少 sources 结构，拒绝构建", file=sys.stderr)
+            raise SystemExit(2)
+
+    # 视图一次构建：index 与 south 頁共用同一南方片规范化视图（同 CSV 同锚周）
+    south_view = build_flu_view(read_csv(FLU_CSV))
+    north_view = build_flu_view(read_csv(FLU_NORTH_CSV),
+                                "north_ili_pct", "north_flu_positive_pct")
+    views = {
+        "flu_south": flu_block(south_view, "south"),
+        "flu_north": flu_block(north_view, "north"),
+        "flu_hlj": flu_block(None, "heilongjiang"),
+        "flu_south_view": south_view,
+        "flu_north_view": north_view,
+    }
+    cards, available = _build_cards(views)
+
+    banner_html = (f'<div class="banner">⚠ {views["flu_south"]["banner"]}</div>'
+                   if views["flu_south"].get("banner") else "")
+    gen = date.today().isoformat()
+
+    # A2 搜索版（design r4 §2）：目录契约不符即构建失败（评审计数断言前置）
+    import search_catalog as _scat
+    by_id = _scat.load_catalog()
+    recipes = {uid: _scat.recipe(uid, by_id)
+               for uid, u in by_id.items() if u["queryable"]}
+    templates_html = "".join(
+        f'<template id="tpl-{name}">{body}</template>'
+        for name, body in _slot_templates(views, cards,
+                                          status_obj).items())
+
+    outdir = OUT.parent
+    outdir.mkdir(parents=True, exist_ok=True)
+    # 单页版同样先暂存、整体校验、再原子替换（A2 复核 IMP-06：生成途中
+    # 失败不得留下新旧混版）；暂存目录每轮唯一，finally 只清理自己的
+    import shutil
+    import uuid as _uuid
+    stage = outdir / f".tmp_build_stage_{os.getpid()}_{_uuid.uuid4().hex[:8]}"
+    stage.mkdir(parents=True)
+    try:
+        default_cards = "\n".join(
+            _card(CARD_TITLES[k], cards[k])
+            for k in ("sc", "flu_south", "hist_south", "rank", "trend", "child")
+            if k not in available)
+        html = PAGE_TPL.format(
+            title=_esc("成都 · 呼吸道防护参考"),
+            h1=_esc("成都 · 呼吸道防护参考"),
+            sub=_esc("分块证据 · 各自口径 · 不合成总分"),
+            searchbox=_search_scaffold(),
+            run_banner=run_banner(local=opts.get("local", False),
+                                  run_id=opts.get("run_id"), page="index",
+                                  status=status_obj),
+            banner=banner_html, cards=default_cards,
+            templates=templates_html,
+            catalog_data=_embed_json(_scat.embedded_json(by_id)),
+            recipes_data=_embed_json(recipes),
+            search_js=SEARCH_JS,
+            foot=FOOT_CD + FOOT_COMMON, gen=gen)
+        spath = stage / "index.html"
+        spath.write_text(html, encoding="utf-8")
+        _validate_pages(stage)
+        os.replace(spath, OUT)
+        print(f"已生成 {OUT}")
+    finally:
+        shutil.rmtree(stage, ignore_errors=True)
+
+
+def _validate_pages(stage_dir) -> None:
+    """单页完整性与资源/链接校验（A2 design r4 §5）。
+
+    - 允许内联脚本与内嵌 JSON（S2 交互脚本），禁止外部脚本/运行时请求：
+      `<script src` / `fetch(` / `@import` / `url(http` 任一出现即失败。
+    - 站内链接仅限本页锚点（单页版无站内跳转；外链仍限官方来源）。
+    - 目录/配方/关键模板三要素齐全，缺一即失败。
+    - 复核 A2-SEARCH-04：实际解析 stage 页里的 catalog-data / recipes-data JSON，
+      断言目录行数=400、模板 ID 不重复、每个配方引用的槽位都有对应模板
+      （chengdu_default 例外：它就是成都默认视图本身，不需要独立模板），
+      且每个模板至少被一个配方引用（防止残留/失效模板悄悄留在页面上）。
+    """
+    import json as _json
+    import re as _re
+    spath = stage_dir / "index.html"
+    if not spath.exists():
+        raise SystemExit("页面校验失败：暂存目录缺 index.html")
+    html = spath.read_text(encoding="utf-8")
+    for bad in ("<script src", "fetch(", "@import", "url(http"):
+        if bad in html:
+            raise SystemExit(f"页面校验失败：index.html 含禁止资源引用 {bad!r}")
+    pat = _re.compile(r"""href=(["'])([^"']+)\1""")
+    for _q, href in pat.findall(html):
+        if "://" in href or href.startswith(("mailto:", "tel:")):
+            continue
+        if href.split("#")[0].strip():
+            raise SystemExit(f"页面校验失败：内链 {href} 不是本页锚点（单页版无站内跳转）")
+    for tid in ('id="catalog-data"', 'id="recipes-data"',
+                'id="tpl-local_nodata"', 'id="tpl-zone_flu_south"',
+                'id="tpl-national_rank"'):
+        if tid not in html:
+            raise SystemExit(f"页面校验失败：缺少 {tid}")
+
+    def _embedded_json(element_id):
+        m = _re.search(
+            r'<script type="application/json" id="%s">(.*?)</script>' % element_id,
+            html, _re.S,
+        )
+        if not m:
+            raise SystemExit(f"页面校验失败：无法定位内嵌 JSON {element_id}")
+        try:
+            return _json.loads(m.group(1))
+        except ValueError as exc:
+            raise SystemExit(f"页面校验失败：{element_id} 不是合法 JSON（{exc}）")
+
+    catalog = _embedded_json("catalog-data")
+    recipes = _embedded_json("recipes-data")
+    if not isinstance(catalog, list) or len(catalog) != 400:
+        raise SystemExit(
+            f"页面校验失败：目录行数 {len(catalog) if isinstance(catalog, list) else '非列表'}"
+            f" ≠ 400"
+        )
+    if not isinstance(recipes, dict) or not recipes:
+        raise SystemExit("页面校验失败：配方为空或结构非法")
+
+    tpl_ids = _re.findall(r'<template id="tpl-([^"]+)">', html)
+    if len(tpl_ids) != len(set(tpl_ids)):
+        dup = sorted({t for t in tpl_ids if tpl_ids.count(t) > 1})
+        raise SystemExit(f"页面校验失败：模板 ID 重复 {dup}")
+    tpl_set = set(tpl_ids)
+
+    used = set()
+    for unit_id, slots in recipes.items():
+        if not isinstance(slots, list) or not slots:
+            raise SystemExit(f"页面校验失败：配方 {unit_id} 槽位为空")
+        for slot in slots:
+            if slot == "chengdu_default":
+                continue
+            used.add(slot)
+            if slot not in tpl_set:
+                raise SystemExit(
+                    f"页面校验失败：配方 {unit_id} 引用槽位 {slot!r} 但页面无 "
+                    f"tpl-{slot} 模板"
+                )
+    orphan = sorted(tpl_set - used)
+    if orphan:
+        raise SystemExit(f"页面校验失败：模板无人引用 {orphan}")
 
 
 if __name__ == "__main__":
-    render()
+    render(_cli_opts(sys.argv[1:]))
