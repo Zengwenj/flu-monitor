@@ -1,9 +1,50 @@
 {
-  "run_at": "2026-11-13T08:58:47",
-  "chinacdc_reachable": true,
+  "schema": 2,
+  "run_id": "20261116T064041-4aa02d84",
+  "origin": "cloud",
+  "started_at": "2026-11-16T06:40:41+00:00",
+  "finished_at": "2026-11-16T06:41:50+00:00",
+  "stage": "build",
+  "complete": true,
   "sources": {
-    "flu_south": "ok",
-    "sentinel": "ok",
-    "flunet": "ok"
+    "flunet": {
+      "status": "ok",
+      "reason": "1022 行"
+    },
+    "sentinel": {
+      "status": "ok",
+      "reason": "2288 行 / 1127 行"
+    },
+    "flu_south": {
+      "status": "ok",
+      "week": "2026W45"
+    },
+    "flu_north": {
+      "status": "ok",
+      "week": "2026W45"
+    },
+    "heilongjiang_flu": {
+      "status": "ok",
+      "week": "2026W45"
+    },
+    "heilongjiang_sentinel": {
+      "status": "ok",
+      "week": "2026W45",
+      "rows": 7
+    }
+  },
+  "compute": {
+    "south": {
+      "status": "ok",
+      "computed": 201
+    },
+    "north": {
+      "status": "ok",
+      "computed": 201
+    },
+    "heilongjiang": {
+      "status": "ok",
+      "computed": 42
+    }
   }
 }
