@@ -1,0 +1,9 @@
+{"file":"CONTEXT.md","reason":"D12/D14/D15/D17/D19 数据存储、口径与展示红线"}
+{"file":"docs/handoff.md","reason":"A2遗留边界、旧实现暂停与项目发布约束"}
+{"file":".trellis/tasks/11-12-regional-monitor/prd.md","reason":"成都默认、省市搜索、可用参考与新版批准边界"}
+{"file":".trellis/tasks/11-12-regional-monitor/design.md","reason":"离线名录、双产品映射、结果状态与index-only发布设计"}
+{"file":".trellis/tasks/11-12-regional-monitor/implement.md","reason":"S0-S6执行顺序、停靠条件、验证命令与回滚"}
+{"file":".trellis/tasks/11-12-regional-monitor/research/location-sources.md","reason":"行政名录、南北片来源、许可未知项与主会话复核清单"}
+{"file":".trellis/tasks/11-12-regional-monitor/research/search-display-proposal.md","reason":"搜索候选、消歧、键盘、脚本边界与分层结果规格"}
+{"file":".trellis/tasks/11-12-regional-monitor/research/search-gap-analysis.md","reason":"名录许可、稳定ID、双产品映射、旧测试迁移与验收缺口"}
+{"file":".trellis/tasks/11-12-regional-monitor/research/architecture-advisory.md","reason":"数据产品隔离、部分失败、状态生命周期与单写者约束"}
