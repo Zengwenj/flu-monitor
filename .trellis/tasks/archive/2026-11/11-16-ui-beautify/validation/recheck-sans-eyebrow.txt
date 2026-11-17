@@ -1,0 +1,55 @@
+== V1 鏋勫缓: exit=0
+  宸茬敓鎴?D:\FluMonitor\site\index.html
+== V2 鍐荤粨鍑芥暟: exit=0
+  S3 钀藉湴 RUN_STATUS_V2 鍚庣敓鏁堬細v2 鏈疆鐘舵€併€乺un_id 涓嶇鏍囧巻鍙层€乴ocal 鎭掔┖銆?... ok
+  
+  ----------------------------------------------------------------------
+  Ran 4 tests in 0.332s
+  
+  OK
+== V4 瀛楅潰+hex: exit=0
+  OK  绂佷覆涓嶅湪: '<script src'
+  OK  绂佷覆涓嶅湪: 'fetch('
+  OK  绂佷覆涓嶅湪: '@import'
+  OK  绂佷覆涓嶅湪: 'url(http'
+  
+  == 0 椤瑰け璐?== []
+== V5b 瑙嗗浘鍒囨崲: exit=0
+    [PASS] B-query-hidden  (qv.hidden=true)
+    [PASS] C-query-shown-first  (kids=4)
+    [PASS] C-clear-keeps-result  (after clear: qv.hidden=false kids=4 (before 4))
+    [PASS] C-clear-keeps-default-hidden  (dv.hidden=true)
+    [PASS] C-clear-empties-input  (q.value="")
+  RESULT: PASS
+== V5 绐勫睆320: exit=0
+   "cw": 320,
+   "sw": 320,
+   "sh": 2400,
+   "bodyW": 320,
+   "over": []
+  }
+== V5 绐勫睆360: exit=0
+   "cw": 360,
+   "sw": 360,
+   "sh": 2400,
+   "bodyW": 360,
+   "over": []
+  }
+== V5 绐勫睆900: exit=0
+   "cw": 900,
+   "sw": 900,
+   "sh": 2400,
+   "bodyW": 900,
+   "over": []
+  }
+== V7 AA鑷: exit=0
+  SELFTEST PASS: dark=21.0 (fill) mid=4.54 (fill)
+== V7 AA 360: exit=0
+        10px                            2026W45
+        10px                            2024W46
+        10px                            2026W45
+        11px                            18.8%
+        11px                            0.8%
+        11px                            1.2%
+
+FAILS: none
