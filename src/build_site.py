@@ -905,6 +905,146 @@ def chongqing_block() -> str:
             ' · 官方声明未经许可不得复制发布，本工具只提供入口，不转载正文、数值或图片。</div>')
 
 
+# A4 主题层（design r3 §2/§3）：独立原始字符串，不经 str.format（GAP-A4-01），
+# 由 render() 经 PAGE_TPL 的 {css} 占位注入 <style> 尾部，后置覆盖存量规则。
+# 红线：不引用任何外部资源，不含脚本标签或远程地址字样；病种识别色仅用于
+# 线条与端点，不进入背景；红色总面积小于百分之一。
+CSS_THEME = r"""
+/* ===== A4 主题层「检验单」===== 纯呈现覆盖，后置于存量规则之上 */
+:root{
+  --bg:#E9EEF1; --surface:#FFF; --surface-2:#F4F7F8; --notice:#FFF6E5;
+  --hair:#DDE5E8; --hair-strong:#C3D2D7; --field-border:#7B8C93;
+  --ink-1:#0E1B20; --ink-2:#3D4E56; --ink-3:#56686F; --ink-4:#8C9BA2;
+  --link:#0A6273; --brand:#0B5D6B; --brand-soft:#E5F0F2; --focus:#0A6B7A;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace;
+}
+body{background:var(--bg);color:var(--ink-1)}
+.wrap{counter-reset:card}
+h1{font-size:21px;font-weight:600;color:var(--ink-1);letter-spacing:.01em}
+.sub{color:var(--ink-3)}
+a{color:var(--link)}
+.banner{background:var(--notice);border-color:var(--hair-strong);border-left:3px solid #7A4E00;color:#7A4E00}
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:10px;padding:14px 20px 18px;box-shadow:0 1px 2px rgba(14,27,32,.04);position:relative;counter-increment:card}
+.card h2{font-size:13px;font-weight:600;letter-spacing:.02em;color:var(--ink-2);padding-right:44px}
+.card::before{content:counter(card,decimal-leading-zero);position:absolute;top:13px;right:16px;font-family:var(--mono);font-size:12px;color:var(--ink-4);pointer-events:none}
+#default-view,#query-view{counter-reset:card}
+.big{font-size:34px;font-weight:700;color:var(--ink-1);font-variant-numeric:tabular-nums;letter-spacing:-0.02em}
+.big.nodata{font-size:24px;color:var(--ink-3);font-weight:400;letter-spacing:0}
+.unit{font-size:13px;font-weight:500;color:var(--ink-3);white-space:nowrap}
+.kv{font-size:15px;line-height:1.62;color:var(--ink-1)}
+.kv b{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.meta{color:var(--ink-3)}
+.src{color:var(--ink-3)}
+.foot{font-size:12px;color:var(--ink-3)}
+.q-ver{font-size:12px;color:var(--ink-3)}
+.q-status{color:var(--ink-3)}
+.q-chip{color:var(--ink-3)}
+.adv{font-size:15px;line-height:1.62;color:var(--ink-1);max-width:68ch;list-style:none;padding-left:0;margin:8px 0 0}
+/* 官方原文自带（1）…（5）序号，故去掉浏览器 decimal 序号，仅保留悬挂缩进 */
+.adv li{padding-left:1.6em;text-indent:-1.6em}
+.chain{font-size:15px;line-height:1.62;color:var(--ink-1)}
+.tlabel{font-size:13px;color:var(--ink-2)}
+.nodata{color:var(--ink-3)}
+.rank{font-size:15px}
+.rank th{font-size:12px;font-weight:500;letter-spacing:.08em;color:var(--ink-3)}
+.childg b{color:var(--ink-2)}
+.search label{color:var(--ink-2)}
+#q{border-color:var(--field-border)}
+#q-list{border-color:var(--field-border)}
+.q-btn{border-color:var(--field-border)}
+#q-list .q-item .q-sub{font-size:12px;color:var(--ink-3)}
+#q-list .q-item[aria-selected="true"] .q-sub{color:#E5E7EB}
+.hist-sub{color:var(--ink-3)}
+.hist-sub2{font-size:12px;color:var(--ink-3)}
+.hist-scroll-hint{font-size:12px;color:var(--ink-3)}
+.hist-tbl caption{font-size:12px;color:var(--ink-3)}
+.hist-tbl thead th{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--ink-3)}
+.hist-tbl .hist-na{color:var(--ink-3)}
+.hist-tbl tbody tr.hist-cur{background:#F4F7F8;box-shadow:inset 2px 0 0 var(--brand)}
+.eyebrow{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--ink-3);margin:0 0 2px}
+/* -- 状态四态（design §2.2/§3）-- */
+.tag{font-size:12px;font-weight:500;padding:3px 10px;border-radius:11px;background:var(--brand-soft);color:var(--brand)}
+.tag.st-ok{background:#E7F4EE;color:#0F6B4F}
+.tag.st-wait{background:var(--notice);color:#7A4E00;border-left:3px solid #7A4E00}
+.tag.st-fail{background:var(--notice);color:#A02D1E;border-left:3px solid #A02D1E}
+.tag.st-unknown{background:var(--surface-2);color:var(--ink-2);border:1px dashed var(--field-border)}
+.q-chip.st-ok{color:#0F6B4F}
+.q-chip.st-wait{color:#7A4E00}
+.q-chip.st-fail{color:#A02D1E}
+.q-chip.st-unknown{color:var(--ink-2)}
+/* -- 五级标尺（仅四川卡，_sc_body 未冻结）-- */
+.rail{display:flex;gap:4px;margin:12px 0 0;max-width:380px}
+.rail i{flex:1;height:6px;border-radius:3px;opacity:.22}
+.rail i.on{opacity:1;outline:1px solid var(--hair-strong)}
+.rail i.lvl-V{background:#D8E8EB}.rail i.lvl-IV{background:#AECFD6}
+.rail i.lvl-III{background:#7FAEB9}.rail i.lvl-II{background:#3D7C8B}
+.rail i.lvl-I{background:#14505F}
+.rail-labels{display:flex;gap:4px;max-width:380px;margin:3px 0 0}
+.rail-labels span{flex:1;text-align:center;font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+/* -- SVG：chrome 重着色 + 文字/线条边界（识别色只留折线与端点）-- */
+svg text[fill="#999"],svg text[fill="#6b7280"]{fill:#3D4E56}
+svg text[fill="#c0392b"],svg text[fill="#7f8c8d"],svg text[fill="#8e44ad"]{fill:#3D4E56}
+svg line[stroke="#e5e7eb"],svg line[stroke="#eef0f2"]{stroke:#EFF3F4}
+svg line[stroke="#9ca3af"],svg line[stroke="#d1d5db"]{stroke:#9FB0B6}
+svg rect[fill="#f3f4f6"]{fill:#F4F7F8}
+svg text[font-size="9"]{font-size:10px}
+/* 小图右端周次标签与低值末端百分比会在底部相撞：两个周次标签共用 y=68 基线，
+   一起下移 10px；溢出改为可见并由 margin-bottom 预留空间（viewBox 不变，
+   冻结函数 svg_sparkline 未改）。 */
+.trendrow svg{overflow:visible;margin-bottom:12px}
+svg text[y="68"]{transform:translateY(10px)}
+/* -- hero（四川卡）：品牌竖条 + 微网格底纹 -- */
+#default-view > .card:has(.adv){
+  border-left:3px solid var(--brand);
+  background-image:repeating-linear-gradient(0deg,rgba(14,27,32,.035) 0 1px,transparent 1px 24px),
+                   repeating-linear-gradient(90deg,rgba(14,27,32,.035) 0 1px,transparent 1px 24px);
+}
+#default-view > .card:has(.big.nodata){border-left:3px dashed var(--field-border)}
+/* -- 焦点环统一 -- */
+#q:focus-visible,.q-btn:focus-visible,.hist-scroll:focus-visible,
+#query-view h2:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+#q-list .q-item:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+/* -- 账本式表格 hover（仅指针设备）-- */
+@media (hover:hover){
+  .rank tbody tr:hover,.hist-tbl tbody tr:hover{background:#F7FAFB}
+}
+/* -- 布局断点：720/900/1024 -- */
+@media (min-width:720px){
+  .wrap{padding:20px}
+  .big{font-size:46px}
+}
+@media (max-width:719px){
+  .card::before{display:none}
+  .card h2{padding-right:0}
+}
+@media (min-width:900px){
+  .wrap{max-width:min(1080px,100%)}
+  #default-view{display:grid;grid-template-columns:repeat(12,1fr);gap:20px;align-items:start}
+  #default-view[hidden]{display:none}
+  #default-view > *{margin-bottom:0}
+  #default-view > .banner,#default-view > .card{grid-column:1/-1}
+  #default-view > .card:has(.adv){grid-column:span 7}
+  #default-view > .card:has(.kv){grid-column:span 5}
+  #default-view > .card:has(.hist-tbl){grid-column:span 7}
+  #default-view > .card:has(.rank){grid-column:span 5}
+  #default-view > .card:has(.trendrow){grid-column:span 7}
+  #default-view > .card:has(.childg){grid-column:span 5}
+  #query-view > .card{grid-column:1/-1}
+}
+@media (min-width:1024px){
+  .wrap{padding:18px 32px}
+}
+@media (max-width:519px){
+  .trendrow{flex-direction:column;align-items:stretch;gap:2px}
+  .tlabel{width:auto}
+}
+@media print{
+  .card{box-shadow:none;background-image:none}
+  .banner{display:none}
+  body{background:#fff}
+}
+"""
+
 PAGE_TPL = """<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -981,6 +1121,7 @@ PAGE_TPL = """<!DOCTYPE html>
   #query-view h2:focus{{outline:none}}
   #query-view h2:focus-visible{{outline:2px solid #3a6ea5;outline-offset:1px}}
   @media (max-width:520px){{ .q-row{{display:block}} .q-btns{{margin-top:6px}} .q-btn{{flex:1}} }}
+{css}
 </style>
 </head>
 <body>
@@ -1030,6 +1171,7 @@ def flu_body_html(flu: dict) -> str:
     <div class="src">来源：{_esc(src_label)} {link}</div>"""
     if flu["state"] == "ok":
         return f"""
+    <div class="eyebrow">GOLDSTEIN · { _esc(flu.get('iso_year','')) }W{ _esc(flu.get('iso_week','')) }</div>
     <div class="big">{_esc(flu.get('goldstein_index',''))}<span class="unit"> Goldstein 指数（相对强度）</span></div>
     <div class="kv">
       <span>ILI% <b>{_esc(flu.get(ili_f,''))}%</b></span>
@@ -1075,12 +1217,28 @@ def _cli_opts(argv):
 def _sc_body(sc: dict) -> str:
     if sc["state"] == "ok":
         advice = "".join(f"<li>{a}</li>" for a in sc["advice"])
+        # A4 状态三态（design r3 §3）：line 以「数据正常」开头=st-ok；
+        # 含「本月待更新」=st-wait（存量非当月）；empty=st-unknown。
+        line = sc["line"]
+        st_cls = "st-ok" if line.startswith("数据正常") else (
+            "st-wait" if "本月待更新" in line else "st-unknown")
+        # 五级标尺：Ⅴ(浅)→Ⅰ(深)，当前级实心、其余降透明（design r3 §2.5）
+        order = ("V", "IV", "III", "II", "I")
+        idx = order.index(sc["level"]) if sc["level"] in order else -1
+        segs = "".join(
+            f'<i class="lvl-{lv}{" on" if i == idx else ""}"></i>'
+            for i, lv in enumerate(order))
+        rail = ('<div class="rail" aria-hidden="true">' + segs + '</div>'
+                '<div class="rail-labels" aria-hidden="true">'
+                + "".join(f"<span>{c}</span>" for c in ("Ⅴ", "Ⅳ", "Ⅲ", "Ⅱ", "Ⅰ"))
+                + "</div>")
         return f"""
     <div class="big">{sc['level']} 级 · {sc['level_name']}<span class="unit">（{sc['year']}年{sc['month']}月）</span></div>
-    <div class="meta"><span class="tag">{sc['line']}</span><span class="tag">省级官方分级</span></div>
+    {rail}
+    <div class="meta"><span class="tag {st_cls}">{sc['line']}</span><span class="tag">省级官方分级</span></div>
     <ol class="adv">{advice}</ol>
     <div class="src">防控建议为官方原文：四川省疾控"流感指数分级标准表" {sc['level']} 级 · <a href="{sc['source_url']}" target="_blank">当期发布</a></div>"""
-    return '<div class="big">？</div><div class="meta"><span class="tag">官方分级未获取 · 状态未知</span></div>'
+    return '<div class="big nodata">？</div><div class="meta"><span class="tag st-unknown">官方分级未获取 · 状态未知</span></div>'
 
 
 FOOT_COMMON = ("    本工具不合成综合风险总分，各块独立标注口径；排序为名称非数值；"
@@ -1581,13 +1739,13 @@ def _src_chip(status, key: str) -> str:
     src = (status.get("sources") or {}).get(key)
     if not isinstance(src, dict):
         # 复核 03：本轮状态存在但缺该源键 = 状态未知，不静默返回空串
-        return '<div class="q-chip">本轮获取：状态未知</div>'
+        return '<div class="q-chip st-unknown">本轮获取：状态未知</div>'
     st = src.get("status")
-    words = {"ok": ("ok", "本轮获取：成功"),
-             "skipped": ("", "本轮获取：未执行"),
-             "failed": ("bad", "本轮获取：失败 · 下方为最近一次成功数据"),
-             "unknown": ("", "本轮获取：状态未知")}
-    cls, txt = words.get(st, ("", "本轮获取：状态未知"))
+    words = {"ok": ("ok st-ok", "本轮获取：成功"),
+             "skipped": ("st-wait", "本轮获取：未执行"),
+             "failed": ("bad st-fail", "本轮获取：失败 · 下方为最近一次成功数据"),
+             "unknown": ("st-unknown", "本轮获取：状态未知")}
+    cls, txt = words.get(st, ("st-unknown", "本轮获取：状态未知"))
     return f'<div class="q-chip {cls}">{txt}</div>'
 
 
@@ -1601,15 +1759,15 @@ def _compute_chip(status, target: str) -> str:
     comp = status.get("compute") or {}
     raw = comp.get(target)
     if not isinstance(raw, dict) or raw.get("status") is None:
-        return '<div class="q-chip">指数计算：状态未知</div>'
+        return '<div class="q-chip st-unknown">指数计算：状态未知</div>'
     st = raw.get("status")
     if st == "ok":
-        return '<div class="q-chip ok">指数计算：已完成</div>'
+        return '<div class="q-chip ok st-ok">指数计算：已完成</div>'
     if st == "failed":
-        return '<div class="q-chip bad">指数计算：未完成 · 下方为最近一次成功数据</div>'
+        return '<div class="q-chip bad st-fail">指数计算：未完成 · 下方为最近一次成功数据</div>'
     if st == "skipped":
-        return '<div class="q-chip">指数计算：未执行</div>'
-    return '<div class="q-chip">指数计算：状态未知</div>'
+        return '<div class="q-chip st-wait">指数计算：未执行</div>'
+    return '<div class="q-chip st-unknown">指数计算：状态未知</div>'
 
 
 def _view_banner(view: dict) -> str:
@@ -1766,7 +1924,8 @@ def render(opts=None) -> None:
             catalog_data=_embed_json(_scat.embedded_json(by_id)),
             recipes_data=_embed_json(recipes),
             search_js=SEARCH_JS,
-            foot=FOOT_CD + FOOT_COMMON, gen=gen)
+            foot=FOOT_CD + FOOT_COMMON, gen=gen,
+            css=CSS_THEME)
         spath = stage / "index.html"
         spath.write_text(html, encoding="utf-8")
         _validate_pages(stage)
