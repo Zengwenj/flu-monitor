@@ -18,7 +18,7 @@ import re
 import sys
 import time
 import urllib.request
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 
 import data_io
@@ -274,6 +274,18 @@ def log_change(week: str, which: str, old: str, new: str) -> None:
         f.write(f"{ts}\t{week}\t{which}\t{old}\t{new}\n")
 
 
+def iso_week_start(y: int, w: int) -> str:
+    """ISO 周起算日（周一）的 YYYY-MM-DD；非法周次返回空串（不猜值）。
+
+    B1：周报表头只给"第N周"，此前该列一直留空；补算不改变页面任何数值，
+    仅让 CSV 与该族其他表（flu_south/heilongjiang/flunet）口径一致、可直读。
+    """
+    try:
+        return date.fromisocalendar(int(y), int(w), 1).isoformat()
+    except (ValueError, TypeError):
+        return ""
+
+
 def write_week(res: dict) -> None:
     """r3 周级覆盖：22 行校验已在 parse_article 完成；写前比对旧行留痕。"""
     if len(res["rates"]) != 22:  # 防御纵深：绕过 parse 的调用同样拦截
@@ -292,7 +304,7 @@ def write_week(res: dict) -> None:
             if ov is not None and ov != nr["positive_pct"]:
                 log_change(wk, f"rates {nr['setting']}/{nr['pathogen']}", ov, nr["positive_pct"])
     for nr in res["rates"]:
-        keep.append({"iso_year": y, "iso_week": w, "week_start": "", **nr,
+        keep.append({"iso_year": y, "iso_week": w, "week_start": iso_week_start(y, w), **nr,
                      "source_url": res["url"], "source_pubdate": res["pub"],
                      "fetched_at": now, "status": "ok"})
     save(RATES_CSV, keep, RATES_FIELDS)

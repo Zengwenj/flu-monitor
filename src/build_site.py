@@ -25,6 +25,7 @@ FLU_NORTH_CSV = ROOT / "data" / "flu_north.csv"
 HLJ_FLU_CSV = ROOT / "data" / "heilongjiang_flu.csv"
 HLJ_SENT_CSV = ROOT / "data" / "heilongjiang_sentinel.csv"
 RANK_CSV = ROOT / "data" / "sentinel_rank.csv"
+CHANGES_LOG = ROOT / "data" / "changes.log"
 SC_CSV = ROOT / "data" / "sichuan_monthly.csv"
 RUN_STATUS = ROOT / "data" / "run_status.json"
 RUN_STATUS_V2 = 2  # A2 design §4：v2 运行状态 schema 版本（--run-status 显式传入）
@@ -765,6 +766,33 @@ def _card(title: str, body: str) -> str:
     return f'  <div class="card">\n    <h2>{title}</h2>\n    {body}\n  </div>'
 
 
+def rank_gap_cause(y, w) -> str:
+    """B2：该周排名缺口在本工具侧的已知原因（读 data/changes.log 的 ranks 行）。
+
+    只复述本工具解析/入库环节的记录，不断言官方原因；无记录返回空串。
+    兼容 4 列历史契约（ts/周次/项/说明）与 5 列现行契约（ts/周次/项/旧/新）。
+    """
+    try:
+        with CHANGES_LOG.open(encoding="utf-8") as f:
+            lines = f.read().splitlines()
+    except OSError:
+        return ""
+    want = f"{y}W{w}"
+    note = ""
+    for line in lines:
+        cols = line.split("\t")
+        if len(cols) < 3 or cols[1] != want or cols[2] != "ranks":
+            continue
+        note = (cols[4] if len(cols) >= 5 else cols[3]).strip()
+    if not note:
+        return ""
+    if "合并" in note:
+        return "该期为月度合并版，表2/3归属周次不明"
+    if "行数" in note or "版式" in note:
+        return "该期表2版式差异，解析未取得"
+    return note
+
+
 def region_rank_block(category: str, area: str) -> str:
     """片区前三名（仅名称，无百分比）：门急诊与住院两组都必须出现。
 
@@ -829,8 +857,11 @@ def region_rank_block(category: str, area: str) -> str:
                           f'<span class="meta">{y}年第{w}周</span>{link}</div>')
         else:
             # 只陈述本工具侧事实，不断言官方原因（IMP-07 round-2）
+            # B2：若 changes.log 有该周记录，附上本工具侧的具体原因（月度合并版 / 版式差异）
+            cause = rank_gap_cause(y, w)
+            detail = f"（{_esc(cause)}）" if cause else ""
             groups.append(f'<div class="childg"><b>{_esc(setting)}</b>'
-                          f'<span class="nodata">本工具未取得{y}年第{w}周前三名排名</span></div>')
+                          f'<span class="nodata">本工具未取得{y}年第{w}周前三名排名{detail}</span></div>')
     return (head + "".join(groups)
             + '<div class="meta"><span class="tag">片区哨点 · 两组各自最新周</span>'
               '<span class="tag">排序非数值</span></div>'
