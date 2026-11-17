@@ -917,8 +917,10 @@ CSS_THEME = r"""
   --ink-1:#0E1B20; --ink-2:#3D4E56; --ink-3:#56686F; --ink-4:#8C9BA2;
   --link:#0A6273; --brand:#0B5D6B; --brand-soft:#E5F0F2; --focus:#0A6B7A;
   --mono:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace;
+  --sans:-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB",
+         "Microsoft YaHei UI","Microsoft YaHei","Noto Sans CJK SC",system-ui,sans-serif;
 }
-body{background:var(--bg);color:var(--ink-1)}
+body{background:var(--bg);color:var(--ink-1);font-family:var(--sans)}
 .wrap{counter-reset:card}
 h1{font-size:21px;font-weight:600;color:var(--ink-1);letter-spacing:.01em}
 .sub{color:var(--ink-3)}
@@ -962,6 +964,8 @@ a{color:var(--link)}
 .hist-tbl .hist-na{color:var(--ink-3)}
 .hist-tbl tbody tr.hist-cur{background:#F4F7F8;box-shadow:inset 2px 0 0 var(--brand)}
 .eyebrow{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--ink-3);margin:0 0 2px}
+/* 品牌短线：把视线钉在关键数字上（design §3.4 第 4 层） */
+.eyebrow::before{content:"";display:inline-block;width:24px;height:3px;background:var(--brand);margin-right:8px;vertical-align:middle}
 /* -- 状态四态（design §2.2/§3）-- */
 .tag{font-size:12px;font-weight:500;padding:3px 10px;border-radius:11px;background:var(--brand-soft);color:var(--brand)}
 .tag.st-ok{background:#E7F4EE;color:#0F6B4F}
