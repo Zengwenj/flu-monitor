@@ -1,0 +1,24 @@
+# B4 dispatch 实测留档（2026-11-17，run 44091632111）
+
+触发：`gh workflow run weekly.yml --repo Zengwenj/flu-monitor --ref main`
+（推送 ece1d3a 后：15e065a chore(ci) / 062e375 chore(data) / 7de07cd feat / ece1d3a docs）
+
+## 结论
+- run conclusion = **success**（job `update` 1m36s，13:19:48Z 触发）
+- **Node20 forced-to-24 弃用提醒：4 条全部消失**（对照 run 44011707699 的
+  checkout@v4 / setup-python@v5 / deploy-pages@v4 / upload-artifact 传递依赖 4 条）
+- 剩余 annotation 仅 1 条：ubuntu-latest 标签迁移告知（runner-images#14748）。
+  实测 runner 已在 **Ubuntu 26.04.1**（Image: ubuntu-26.04, release
+  20261111.196）——即迁移已完成，该条为标签层告知而非弃用错误；
+  `runs-on: ubuntu-latest` 保留自迁移（pin ubuntu-26.04 可消音但放弃自动更新，不做）
+- Deploy 步骤日志确认 `Run actions/deploy-pages@v5` 执行
+
+## 顺带的 B1 生产验证
+bot 回写 6a5b9c5 后本地 pull 检查 data/sentinel_national_rates.csv：
+total rows 2288 / week_start empty **0** / 2026W45 22 行 sample `2026-11-02`
+—— 云端 Linux runner 走新 write_week 路径回写，week_start 真算正确。
+
+## 线上验证（https://zengwenj.github.io/flu-monitor/）
+HTTP 200 len=127313；rail×1、eyebrow×7、st-wait×3、var(--sans)×1（A4 主题完好）；
+四禁串均 0；「本工具未取得」仅 2 处且均为既有模板文案（local_nodata/prov_nodata），
+B2 的排名缺口原因后缀本周不可见（2026W45 排名正常，符合预期）。
