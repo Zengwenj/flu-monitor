@@ -15,7 +15,7 @@
 | 仓库 | https://github.com/Zengwenj/flu-monitor （public，main） |
 | 本地 | `D:\FluMonitor` |
 | 最新提交 | A4 提交后以 `git log` 为准（2026-11-17，本地 = 远程，工作树干净） |
-| 状态 | M0–M4 全部完成；**A1a / A1b / A2 / A4 界面美化 均已完成上线**（各走完整评审链，见 §7）；余 A3 支原体专题 |
+| 状态 | M0–M4 全部完成；**A1a / A1b / A2 / A4 界面美化 均已完成上线**（各走完整评审链，见 §7）；A3 支原体专题已取消（2026-11-17），余项见 §5（均为可选小项与技术债，无必做项） |
 | 自动化 | GitHub Actions 每周五北京 10:00：单写者锁管线（六源抓取→指数→构建→状态落盘）→ 隔离发布目录 `site_publish/` 只部署验证过的首页 → bot 回写 data/ |
 | 手动部署 | `gh workflow run weekly.yml --repo Zengwenj/flu-monitor --ref main`（约 90 秒；含 workflow_dispatch） |
 
@@ -75,7 +75,7 @@ site/  生成物（不进 git）；site_publish/ 同（.gitignore）
 
 **代码层契约**：哨点 r3 22 行完整才覆盖；flu_south/heilongjiang 成功才覆盖；`build_site` 匹配策略=规范名/审核别名 **精确→前缀→包含** 三级（勿再加运行时剥后缀推断）；发布只出 `site_publish/index.html`。
 
-## 5. 遗留可选项目（按收益排序；A1/A2 已完成）
+## 5. 遗留可选项目（A1/A2/A4 已完成，A3 已取消）
 
 ### ✅ 已完成（2026-11-11 → 11-17）
 - **A1a** 流感历史回补：南/北方各 201 周（2023W1 起）、分母 bug 修复（旧值稀释 21–50%）、原子写、缓存来源绑定。任务 `archive/2026-11/11-11-flu-south-backfill`
@@ -83,8 +83,10 @@ site/  生成物（不进 git）；site_publish/ 同（.gitignore）
 - **A2** 成都默认 + 全国省市离线搜索单页（397 单位、双产品片区映射、六态降级、发布隔离）。任务 `archive/2026-11/11-12-regional-monitor`（同一任务先做五页版后被用户纠正为搜索版，过程文档都在）
 - **A4** 界面美化（2026-11-17）：浅色医疗仪表盘主题（CSS_THEME 常量 + `{css}` 注入，冻结函数零改动）；≥900px 双列 12 栅格 `:has()` 内容定位（三行 7+5，**用户 2026-11-17 批准，正式偏离 design §5.1 的 12/5+7/5+7/12**，批准记录在任务 validation/v9-fix-record.md §7）；四川卡五级色条标尺 + 四态状态徽章（st-ok/st-wait/st-fail/st-unknown）；GOLDSTEIN 眉标；SVG 文字墨色重着色（文字/线条边界）；WCAG AA 全达标（360/1280 两档低于 AA=0，SVG 文本按 computed fill 计）；≥720 关键数字 46px。验证工具链全部留在 `.tmp_a4/`（probe_style/probe_narrow/probe_grid/check_view_toggle/check_lit/v10_recheck 等）。任务 `archive/2026-11/11-16-ui-beautify`
 
-### 待做
-- **A3 支原体专题 / 细菌维度**：支原体趋势图（数据已有，纯展示层）；CHINET 半年报耐药率（≠阳性率）
+### ❌ 已取消
+- **A3 支原体专题 / 细菌维度**：用户 2026-11-17 决定不做（支原体趋势图、CHINET 半年报耐药率均不实施）
+
+### 待做（均为可选）
 - **小项**：①`locations.csv` aliases 列全空——审核别名入库可提升简称命中（如"蓉城""哈市"；数据补录，非代码）②读屏/触屏/IME/窄屏**真机**验收未做（自动断言已覆盖 aria/44px/320/360/WCAG）③`docs/handoff.md` 与 `docs/roadmap.md` 的历史叙述以归档任务文档为准
 
 ### B 小技术债
@@ -133,9 +135,7 @@ site/  生成物（不进 git）；site_publish/ 同（.gitignore）
 ## 8. 新会话开场话术（可直接复制）
 
 > 接 FluMonitor 项目（`D:\FluMonitor`，线上 https://zengwenj.github.io/flu-monitor/）。先读 `docs/handoff.md` 和 `CONTEXT.md`。
-> 我要做遗留项 **A3 支原体专题**。请按项目约定走 缺口分析 → design/implement 冻结 → plan-critic → 我批准 → 实施 → oracle 复核 → 我验收提交。
-
-（把 A3 换成 A4/B 等即可）
+> 我要做遗留项 **（填 §5 待做/技术债中的某一项）**。请按项目约定走 缺口分析 → design/implement 冻结 → plan-critic → 我批准 → 实施 → oracle 复核 → 我验收提交。
 
 ## 9. 不要做的事
 
