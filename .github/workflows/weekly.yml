@@ -22,9 +22,9 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -79,14 +79,14 @@ jobs:
       # 只有构建成功（site_ready=true）才上传，管线退出 2 时阻止上传
       - name: Upload Pages artifact
         if: steps.outcome.outputs.site_ready == 'true'
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: site_publish  # A2-SEARCH-05：只部署本轮验证过的首页（site/ 内历史文件不进 artifact）
 
       - name: Deploy to GitHub Pages
         id: deployment
         if: steps.outcome.outputs.site_ready == 'true'
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
       # 部分失败（exit=1）：仍部署降级页面，但显式告警，不让绿色掩盖数据缺口
       - name: Warn on partial failure
