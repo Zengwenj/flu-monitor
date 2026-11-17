@@ -1,0 +1,16 @@
+$ -X utf8 .tmp_a4/reg/11-12-regional-monitor/validation/check_history_compat.py --check Reg
+exit=0
+
+
+[stderr]
+test_01_source_identical (__main__.Reg.test_01_source_identical) ... ok
+test_02_outputs_identical_real_data (__main__.Reg.test_02_outputs_identical_real_data) ... ok
+test_03_v1_banner_history (__main__.Reg.test_03_v1_banner_history)
+v1 历史 run_status 兼容：failed→未能获取；local 无状态横幅。 ... ok
+test_03b_v2_banner_contract (__main__.Reg.test_03b_v2_banner_contract)
+S3 落地 RUN_STATUS_V2 后生效：v2 本轮状态、run_id 不符标历史、local 恒空。 ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.140s
+
+OK

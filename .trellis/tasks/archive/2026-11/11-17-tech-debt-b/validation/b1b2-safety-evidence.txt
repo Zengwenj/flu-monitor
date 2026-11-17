@@ -1,0 +1,20 @@
+## B1 data/sentinel_national_rates.csv 逐单元格 diff（vs HEAD）
+HEAD rows=2288  工作副本 rows=2288
+非 week_start 列的差异单元格数 = 0  {}
+week_start 变化行数 = 2288
+week_start 已填行数 = 2288 / 2288
+distinct 周数 = 104；最早周=2024-11-11 最晚周=2026-11-02
+未填周数 = 0 []
+与 fromisocalendar 不符的周数 = 0 []
+周次序列单调递增 = True
+
+## B1/B2 build_site --local 产物哈希
+build exit=0
+已生成 D:\FluMonitor\site\index.html
+site/index.html sha256 = 5da6b12afb33ab2b0e651f8b5cb8af188004c29ad540c017d50141c955806910
+site/index.html size     = 138227
+回填/改码前记录值        = 5da6b12afb33ab2b0e651f8b5cb8af188004c29ad540c017d50141c955806910
+一致 = True
+
+## B2 当前产物占位文案检查
+占位文案出现次数 = 2

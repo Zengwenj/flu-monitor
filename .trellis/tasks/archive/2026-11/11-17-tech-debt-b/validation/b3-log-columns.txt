@@ -1,0 +1,12 @@
+$ -X utf8 .tmp_small/scan_log_cols.py
+exit=0
+
+total lines 147
+col counts Counter({5: 143, 4: 4})
+
+4-col lines: 4
+  ['2026-11-11T15:34:17', '2025W33', 'table_sum_check', '南方10043+北方2995≠合计13029（偏差≤0.2%，按上游笔误照存）']
+  ['2026-11-11T15:34:17', '2026W11', 'cover_leftover_issue', '主期号第900期×10，封面残留期号 {895: 1}（照存）']
+  ['2026-11-12T17:53:15', '2025W33', 'table_sum_check', '南方10043+北方2995≠合计13029（偏差≤0.2%，按上游笔误照存）']
+  ['2026-11-12T17:53:15', '2026W11', 'cover_leftover_issue', '主期号第900期×10，封面残留期号 {895: 1}（照存）']
+wrote D:\FluMonitor\.tmp_small\b3-legacy-4col.txt

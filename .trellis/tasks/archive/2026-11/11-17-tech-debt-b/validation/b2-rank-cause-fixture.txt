@@ -1,0 +1,13 @@
+$ -X utf8 .tmp_small/test_b2_rank_cause.py
+exit=0
+
+PASS 月度合并版原因入文案
+PASS 版式差异原因入文案
+PASS 无记录时文案不变
+PASS 4 列旧契约可解析
+PASS 旧契约不含官方归因
+PASS 正常周不受影响
+PASS 原因文案已转义
+PASS 真实数据今日无原因后缀
+
+FAILS: 无

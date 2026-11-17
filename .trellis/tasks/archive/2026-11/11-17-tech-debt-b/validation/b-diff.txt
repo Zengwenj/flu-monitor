@@ -1,0 +1,238 @@
+# B 组技术债 diff（vs HEAD a4f70b4）
+## git diff --stat
+ .github/workflows/weekly.yml     |    8 +-
+ data/changes.log                 |    1 +
+ data/sentinel_national_rates.csv | 4576 +++++++++++++++++++-------------------
+ docs/handoff.md                  |   18 +-
+ src/build_site.py                |   33 +-
+ src/fetch_sentinel.py            |   16 +-
+ 6 files changed, 2349 insertions(+), 2303 deletions(-)
+
+[stderr]
+warning: in the working copy of '.github/workflows/weekly.yml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'data/changes.log', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'data/sentinel_national_rates.csv', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/handoff.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/build_site.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/fetch_sentinel.py', LF will be replaced by CRLF the next time Git touches it
+
+
+## git diff -- .github/workflows/weekly.yml
+diff --git a/.github/workflows/weekly.yml b/.github/workflows/weekly.yml
+index 809a246..104ff0f 100644
+--- a/.github/workflows/weekly.yml
++++ b/.github/workflows/weekly.yml
+@@ -22,9 +22,9 @@ jobs:
+       name: github-pages
+       url: ${{ steps.deployment.outputs.page_url }}
+     steps:
+-      - uses: actions/checkout@v4
++      - uses: actions/checkout@v7
+ 
+-      - uses: actions/setup-python@v5
++      - uses: actions/setup-python@v7
+         with:
+           python-version: "3.12"
+ 
+@@ -79,14 +79,14 @@ jobs:
+       # 只有构建成功（site_ready=true）才上传，管线退出 2 时阻止上传
+       - name: Upload Pages artifact
+         if: steps.outcome.outputs.site_ready == 'true'
+-        uses: actions/upload-pages-artifact@v4
++        uses: actions/upload-pages-artifact@v5
+         with:
+           path: site_publish  # A2-SEARCH-05：只部署本轮验证过的首页（site/ 内历史文件不进 artifact）
+ 
+       - name: Deploy to GitHub Pages
+         id: deployment
+         if: steps.outcome.outputs.site_ready == 'true'
+-        uses: actions/deploy-pages@v4
++        uses: actions/deploy-pages@v5
+ 
+       # 部分失败（exit=1）：仍部署降级页面，但显式告警，不让绿色掩盖数据缺口
+       - name: Warn on partial failure
+
+[stderr]
+warning: in the working copy of '.github/workflows/weekly.yml', LF will be replaced by CRLF the next time Git touches it
+
+
+## git diff -- src/fetch_sentinel.py
+diff --git a/src/fetch_sentinel.py b/src/fetch_sentinel.py
+index 4d73f3e..8979c59 100644
+--- a/src/fetch_sentinel.py
++++ b/src/fetch_sentinel.py
+@@ -18,7 +18,7 @@ import re
+ import sys
+ import time
+ import urllib.request
+-from datetime import datetime
++from datetime import date, datetime
+ from pathlib import Path
+ 
+ import data_io
+@@ -274,6 +274,18 @@ def log_change(week: str, which: str, old: str, new: str) -> None:
+         f.write(f"{ts}\t{week}\t{which}\t{old}\t{new}\n")
+ 
+ 
++def iso_week_start(y: int, w: int) -> str:
++    """ISO 周起算日（周一）的 YYYY-MM-DD；非法周次返回空串（不猜值）。
++
++    B1：周报表头只给"第N周"，此前该列一直留空；补算不改变页面任何数值，
++    仅让 CSV 与该族其他表（flu_south/heilongjiang/flunet）口径一致、可直读。
++    """
++    try:
++        return date.fromisocalendar(int(y), int(w), 1).isoformat()
++    except (ValueError, TypeError):
++        return ""
++
++
+ def write_week(res: dict) -> None:
+     """r3 周级覆盖：22 行校验已在 parse_article 完成；写前比对旧行留痕。"""
+     if len(res["rates"]) != 22:  # 防御纵深：绕过 parse 的调用同样拦截
+@@ -292,7 +304,7 @@ def write_week(res: dict) -> None:
+             if ov is not None and ov != nr["positive_pct"]:
+                 log_change(wk, f"rates {nr['setting']}/{nr['pathogen']}", ov, nr["positive_pct"])
+     for nr in res["rates"]:
+-        keep.append({"iso_year": y, "iso_week": w, "week_start": "", **nr,
++        keep.append({"iso_year": y, "iso_week": w, "week_start": iso_week_start(y, w), **nr,
+                      "source_url": res["url"], "source_pubdate": res["pub"],
+                      "fetched_at": now, "status": "ok"})
+     save(RATES_CSV, keep, RATES_FIELDS)
+
+[stderr]
+warning: in the working copy of 'src/fetch_sentinel.py', LF will be replaced by CRLF the next time Git touches it
+
+
+## git diff -- src/build_site.py
+diff --git a/src/build_site.py b/src/build_site.py
+index 0997b47..b11b40a 100644
+--- a/src/build_site.py
++++ b/src/build_site.py
+@@ -25,6 +25,7 @@ FLU_NORTH_CSV = ROOT / "data" / "flu_north.csv"
+ HLJ_FLU_CSV = ROOT / "data" / "heilongjiang_flu.csv"
+ HLJ_SENT_CSV = ROOT / "data" / "heilongjiang_sentinel.csv"
+ RANK_CSV = ROOT / "data" / "sentinel_rank.csv"
++CHANGES_LOG = ROOT / "data" / "changes.log"
+ SC_CSV = ROOT / "data" / "sichuan_monthly.csv"
+ RUN_STATUS = ROOT / "data" / "run_status.json"
+ RUN_STATUS_V2 = 2  # A2 design §4：v2 运行状态 schema 版本（--run-status 显式传入）
+@@ -765,6 +766,33 @@ def _card(title: str, body: str) -> str:
+     return f'  <div class="card">\n    <h2>{title}</h2>\n    {body}\n  </div>'
+ 
+ 
++def rank_gap_cause(y, w) -> str:
++    """B2：该周排名缺口在本工具侧的已知原因（读 data/changes.log 的 ranks 行）。
++
++    只复述本工具解析/入库环节的记录，不断言官方原因；无记录返回空串。
++    兼容 4 列历史契约（ts/周次/项/说明）与 5 列现行契约（ts/周次/项/旧/新）。
++    """
++    try:
++        with CHANGES_LOG.open(encoding="utf-8") as f:
++            lines = f.read().splitlines()
++    except OSError:
++        return ""
++    want = f"{y}W{w}"
++    note = ""
++    for line in lines:
++        cols = line.split("\t")
++        if len(cols) < 3 or cols[1] != want or cols[2] != "ranks":
++            continue
++        note = (cols[4] if len(cols) >= 5 else cols[3]).strip()
++    if not note:
++        return ""
++    if "合并" in note:
++        return "该期为月度合并版，表2/3归属周次不明"
++    if "行数" in note or "版式" in note:
++        return "该期表2版式差异，解析未取得"
++    return note
++
++
+ def region_rank_block(category: str, area: str) -> str:
+     """片区前三名（仅名称，无百分比）：门急诊与住院两组都必须出现。
+ 
+@@ -829,8 +857,11 @@ def region_rank_block(category: str, area: str) -> str:
+                           f'<span class="meta">{y}年第{w}周</span>{link}</div>')
+         else:
+             # 只陈述本工具侧事实，不断言官方原因（IMP-07 round-2）
++            # B2：若 changes.log 有该周记录，附上本工具侧的具体原因（月度合并版 / 版式差异）
++            cause = rank_gap_cause(y, w)
++            detail = f"（{_esc(cause)}）" if cause else ""
+             groups.append(f'<div class="childg"><b>{_esc(setting)}</b>'
+-                          f'<span class="nodata">本工具未取得{y}年第{w}周前三名排名</span></div>')
++                          f'<span class="nodata">本工具未取得{y}年第{w}周前三名排名{detail}</span></div>')
+     return (head + "".join(groups)
+             + '<div class="meta"><span class="tag">片区哨点 · 两组各自最新周</span>'
+               '<span class="tag">排序非数值</span></div>'
+
+[stderr]
+warning: in the working copy of 'src/build_site.py', LF will be replaced by CRLF the next time Git touches it
+
+
+## git diff -- docs/handoff.md
+diff --git a/docs/handoff.md b/docs/handoff.md
+index 989cf6f..deb43b4 100644
+--- a/docs/handoff.md
++++ b/docs/handoff.md
+@@ -1,6 +1,6 @@
+ # 交接文档（Handoff）
+ 
+-> 写于 2026-11-09（M4b 收官）；更新于 2026-11-16（A1a/A1b/A2 完成上线）；**更新于 2026-11-17（A4 界面美化完成上线）**。用于**另开会话继续遗留可选项目**。
++> 写于 2026-11-09（M4b 收官）；更新于 2026-11-16（A1a/A1b/A2 完成上线）；更新于 2026-11-17（A4 界面美化完成上线）；**更新于 2026-11-17（B 组五项技术债清零，见 §5）**。用于**另开会话继续遗留可选项目**。
+ > 读者：接手的新会话（AI）+ 你本人。读完这份 + `CONTEXT.md` 就能接上，不需要读全部历史。
+ 
+ ---
+@@ -15,7 +15,7 @@
+ | 仓库 | https://github.com/Zengwenj/flu-monitor （public，main） |
+ | 本地 | `D:\FluMonitor` |
+ | 最新提交 | A4 提交后以 `git log` 为准（2026-11-17，本地 = 远程，工作树干净） |
+-| 状态 | M0–M4 全部完成；**A1a / A1b / A2 / A4 界面美化 均已完成上线**（各走完整评审链，见 §7）；A3 支原体专题已取消（2026-11-17），余项见 §5（均为可选小项与技术债，无必做项） |
++| 状态 | M0–M4 全部完成；**A1a / A1b / A2 / A4 界面美化 + B 组五项技术债 均已完成上线**（各走完整评审链，见 §7）；A3 支原体专题已取消（2026-11-17）；余项仅剩 §5「小项②」真机验收（等用户）+ §6 已知坑 |
+ | 自动化 | GitHub Actions 每周五北京 10:00：单写者锁管线（六源抓取→指数→构建→状态落盘）→ 隔离发布目录 `site_publish/` 只部署验证过的首页 → bot 回写 data/ |
+ | 手动部署 | `gh workflow run weekly.yml --repo Zengwenj/flu-monitor --ref main`（约 90 秒；含 workflow_dispatch） |
+ 
+@@ -89,12 +89,14 @@ site/  生成物（不进 git）；site_publish/ 同（.gitignore）
+ ### 待做（均为可选）
+ - **小项**：①~~`locations.csv` aliases 列全空~~ **已完成（2026-11-17）**：审核别名 14 单位 16 条入库（蓉城/锦城=成都、哈市/冰城=哈尔滨、羊城/鹏城/星城/泉城/榕城/春城/北国春城/乌市/呼市/申城/山城/金陵；江城弃用——武汉/吉林市两用），用户批准，留痕 changes.log。**注意**：A2 套件 Q6 的 changes.log 与 locations.csv 两个 S0 pin 从此预期失败（授权漂移），失败集合基线=Q6 三项（含 flu_north 既有漂移）；新基线 pin：locations.csv `ddbf3888…`。②读屏/触屏/IME/窄屏**真机**验收：清单已备 `docs/real-device-checklist.md`，待用户真机执行后关闭 ③~~文档历史叙述核对~~ **已完成（2026-11-17）**：roadmap M5 范围与「当前位置」已同步实际状态（A2/A1b/A4 落地、A3 取消），冲突时仍以归档任务文档为准
+ 
+-### B 小技术债
+-1. `sentinel_national_rates.csv` week_start 全空（X 轴用"第N周"）
+-2. 排序缺口 11 周两种原因未在页面细分（需 join changes.log）
+-3. changes.log 部分历史行是 4 列旧契约（A1a 前），套件已按历史变体接纳
+-4. Actions 弃用提醒：Node20 强制 24、ubuntu-latest→26 → 未来升级 `actions/*`
+-5. `.trellis/workspace/` 日志敏感排查
++### B 小技术债（2026-11-17 五项全部处理，任务 `11-17-tech-debt-b`）
++1. ✅ `sentinel_national_rates.csv` week_start 全空 → 已回填 2288 行 / 104 周（2024-11-11..2026-11-02），`fetch_sentinel.write_week` 经新增 `iso_week_start()` 真算 ISO 周一（非法周次返回空串）。**页面数值零变化**（该列不被 `build_site` 消费，产物 SHA-256 前后一致）。
++2. ✅ 排序缺口原因细分 → `build_site.rank_gap_cause(y,w)` 读 `changes.log` 的 ranks 行（取最后一条，兼容 4/5 列），`region_rank_block` 的 `rank_unavailable` 占位分支追加「（该期为月度合并版，表2/3归属周次不明）」/「（该期表2版式差异，解析未取得）」。只复述本工具记录，不断言官方原因；当前锚周正常故线上暂无可见变化。
++3. ✅ changes.log 4 列旧契约 → **记录性关闭，不改写**（147 行 = 5 列 143 + 4 列 4；4 列行为 2025W33 table_sum_check / 2026W11 cover_leftover_issue，各重复一次）。套件已接纳，`rank_gap_cause` 亦兼容。
++4. ✅ Actions 大版本升级（消除 Node20/ubuntu 弃用提示）：`checkout@v7`、`setup-python@v7`、`upload-pages-artifact@v5`、`deploy-pages@v5`；`runs-on: ubuntu-latest` 保留（GitHub 已自动迁 26）。**下次再看到弃用提示，先查各 action 的 release，别再靠记忆猜版本**；`upload-pages-artifact` 的 Node20 警告来自其内部 pin 的 `upload-artifact`，只能靠升它本体消除。
++5. ✅ `.trellis/workspace/` 敏感排查 → 3 个 tracked 文件零命中；另扫 196 个 .trellis tracked 文件仅 `.trellis/.template-hashes.json` 一例误报（sha256 串内数字片段被手机号正则误匹配）。
++
++> 数据写入换行契约（本节实测，勿当 bug）：`data_io.atomic_write_csv` 用 `newline=""` → Windows 下写 CRLF，而 `.gitattributes` 规定 `data/*.csv text eol=lf` → 工作副本 CRLF、提交归一为 LF。`changes.log` 追加行同样是 CRLF（历史 146 行 LF）。
+ 
+ ### C 外部限制（不可改，页面已诚实标注）
+ 成都无市级周度数据 / 黑龙江非每周发布（42+1+54 对账口径）/ 重庆版权只链接 / 多病原历史仅 2 年 / 境外连通性可能变化
+
+[stderr]
+warning: in the working copy of 'docs/handoff.md', LF will be replaced by CRLF the next time Git touches it
+
+
+## data/changes.log 新增行（git diff）
+diff --git a/data/changes.log b/data/changes.log
+index 11f9499..8cb9636 100644
+--- a/data/changes.log
++++ b/data/changes.log
+@@ -144,3 +144,4 @@
+ 2026-11-15T11:25:35	ALL	locations_catalog	新建	基础集396(CC0 e2c2b2e1)+草湖市659013(dmfw补正)=可查询397;港澳台3行占位不可查询
+ 2026-11-15T11:25:50	ALL	location_product_map	修正	直辖市规范名含市字致region误判unknown(重庆/北京/天津/上海);重生成后south=206 north=191 unknown=3(港澳台)
+ 2026-11-17T11:30:49	ALL	locations.csv	补录	审核别名补录14单位16条(蓉城|锦城=成都,哈市|冰城=哈尔滨,羊城=广州,鹏城=深圳,星城=长沙,泉城=济南,榕城=福州,春城=昆明,北国春城=长春,乌市=乌鲁木齐,呼市=呼和浩特,申城=上海,山城=重庆,金陵=南京);江城弃用(武汉/吉林市两用);用户2026-11-17批准;仅精确/前缀/包含三级匹配,无运行时推断
++2026-11-17T13:06:55	sentinel_national_rates	week_start	(blank)	回填 ISO 周一 2024-11-11..2026-11-02（104 周 / 2288 行，数值列未改动）
+
+[stderr]
+warning: in the working copy of 'data/changes.log', LF will be replaced by CRLF the next time Git touches it
+
+
+## data/sentinel_national_rates.csv：表头 + 首行 + 末行（工作副本）
+iso_year,iso_week,week_start,setting,pathogen,positive_pct,delta_last_week,source_url,source_pubdate,fetched_at,status
+2026,43,2026-10-19,门急诊,新型冠状病毒,1.9,-0.8,https://www.chinacdc.cn/jksj/jksj04_14275/202610/t20261029_1842566.html,2026-10-29,2026-11-09T10:28:11,ok
+2026,45,2026-11-02,住院,肺炎支原体,1.2,-0.1,https://www.chinacdc.cn/jksj/jksj04_14275/202611/t20261112_1842956.html,2026-11-12,2026-11-17T03:40:14,ok
+(总行数 2289，含表头)

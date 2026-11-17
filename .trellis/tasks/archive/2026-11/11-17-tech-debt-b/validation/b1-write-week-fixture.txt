@@ -1,0 +1,12 @@
+$ -X utf8 .tmp_small/test_b1_write_week.py
+exit=0
+
+[ok] 2026W45: rates 22 行 + ranks 1
+rows=22 distinct week_start={'2026-11-02'}
+CHECK1 22 行且全为 2026-11-02: True
+CHECK2 iso_week_start 边界: OK
+[ok] 2026W45: rates 22 行 + ranks 1
+CHECK3 重写同周仍 22 行且不重复: True
+CHECK4 表头字段顺序: OK
+CHECK5 ranks 表已写: True
+（临时文件已清理）

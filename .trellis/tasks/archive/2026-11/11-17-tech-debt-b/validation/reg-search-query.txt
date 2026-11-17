@@ -1,0 +1,52 @@
+$ -X utf8 .tmp_a4/reg/11-12-regional-monitor/validation/check_search_query.py
+exit=1
+
+Q-SUITE FAIL 53/56
+
+[stderr]
+........................................FFF.............
+======================================================================
+FAIL: test_changeslog_freeze_plus_catalog_appends (__main__.Q6.test_changeslog_freeze_plus_catalog_appends)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\FluMonitor\.tmp_a4\reg\11-12-regional-monitor\validation\check_search_query.py", line 386, in test_changeslog_freeze_plus_catalog_appends
+    self.assertEqual(
+    ~~~~~~~~~~~~~~~~^
+        self.__class__._sha_bytes(b"".join(kept)),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self._freeze_pins()["changes.log"],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        "changes.log 除三条目录留痕外偏离冻结 r4 内容")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '9cb472b3bea483a17d3dbf9811fd743c1387f48672a84a12b4bb9d74d274e881' != '51f3ade26d54a2e5ab7da9ca8f39863bbaad1871f879f142ebe50f501e3c519a'
+- 9cb472b3bea483a17d3dbf9811fd743c1387f48672a84a12b4bb9d74d274e881
++ 51f3ade26d54a2e5ab7da9ca8f39863bbaad1871f879f142ebe50f501e3c519a
+ : changes.log 除三条目录留痕外偏离冻结 r4 内容
+
+======================================================================
+FAIL: test_freeze_pins_nine_files (__main__.Q6.test_freeze_pins_nine_files)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\FluMonitor\.tmp_a4\reg\11-12-regional-monitor\validation\check_search_query.py", line 377, in test_freeze_pins_nine_files
+    self.assertEqual(self._sha(p), want, f"{name} 偏离冻结 r4 基线")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'fb0bf1627ee922e53a3e3199191d014cac2e0613edb9c43561d6638e2e3bf9b0' != '3851e1dcba1fa74c02c1c581bac659d00a723605de7d61b9951df7e4fa109597'
+- fb0bf1627ee922e53a3e3199191d014cac2e0613edb9c43561d6638e2e3bf9b0
++ 3851e1dcba1fa74c02c1c581bac659d00a723605de7d61b9951df7e4fa109597
+ : flu_north.csv 偏离冻结 r4 基线
+
+======================================================================
+FAIL: test_new_catalog_pins (__main__.Q6.test_new_catalog_pins)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\FluMonitor\.tmp_a4\reg\11-12-regional-monitor\validation\check_search_query.py", line 401, in test_new_catalog_pins
+    self.assertTrue(self._sha(ROOT / "data" / name)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    .startswith(m.group(1)), f"{name} 与 S0 基线不符")
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : locations.csv 与 S0 基线不符
+
+----------------------------------------------------------------------
+Ran 56 tests in 2.755s
+
+FAILED (failures=3)

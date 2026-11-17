@@ -1,0 +1,49 @@
+$ -X utf8 .trellis/tasks/archive/2026-11/11-16-ui-beautify/validation/tools/check_lit.py
+exit=0
+
+OK  字面存在: 'min-height:44px'
+OK  字面存在: 'font-size:16px'
+OK  字面存在: 'focus-visible'
+OK  字面存在: '  <div class="card">'
+OK  字面存在: '<div id="default-view">\n  <div class="banner'
+OK  字面存在: '已恢复成都默认'
+OK  字面存在: '请从列表中选择'
+OK  字面存在: '未找到匹配的省市'
+OK  字面存在: '个单位'
+OK  源码字面存在: '官方分级未获取 · 状态未知'
+OK  id 存在: q
+OK  id 存在: q-list
+OK  id 存在: q-status
+OK  id 存在: query-view
+OK  id 存在: default-view
+OK  四川官方流感分级 计数==1（实际 1）
+OK  .big 数值+unit 结构字面（goldstein=82.34）
+OK  script 段数==3（实际 3）
+OK  rail 恰 1（实际 1，实施前应为 0）
+OK  SVG 锚 hex 存在: #999
+OK  SVG 锚 hex 存在: #6b7280
+OK  SVG 锚 hex 存在: #e5e7eb
+OK  SVG 片段 hex 计数相等: #c0392b（before=7 after=7）
+OK  SVG 片段 hex 计数相等: #7f8c8d（before=3 after=3）
+OK  SVG 片段 hex 计数相等: #8e44ad（before=3 after=3）
+OK  SVG 片段 hex 计数相等: #1f4e79（before=4 after=4）
+OK  SVG 片段 hex 计数相等: #999（before=6 after=6）
+OK  SVG 片段 hex 计数相等: #6b7280（before=14 after=14）
+OK  SVG 片段 hex 计数相等: #e5e7eb（before=3 after=3）
+OK  SVG 片段 hex 计数相等: #eef0f2（before=3 after=3）
+OK  SVG 片段 hex 计数相等: #4b5563（before=1 after=1）
+OK  SVG 片段 hex 计数相等: #f3f4f6（before=1 after=1）
+OK  源码含状态类定义: st-ok
+OK  源码含状态类定义: st-wait
+OK  源码含状态类定义: st-fail
+OK  源码含状态类定义: st-unknown
+OK  sc 卡 .tag 实时态一致（sichuan_block → st-wait）
+OK  夹具当月: st-ok + rail，无 st-wait/st-unknown
+OK  夹具过月: st-wait + rail，无 st-ok
+OK  夹具 empty: st-unknown + nodata + 官方文案，无 rail
+OK  禁串不在: '<script src'
+OK  禁串不在: 'fetch('
+OK  禁串不在: '@import'
+OK  禁串不在: 'url(http'
+
+== 0 项失败 == []

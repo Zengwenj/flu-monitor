@@ -1,0 +1,44 @@
+## 1. weekly.yml 当前 uses / runs-on
+  20: runs-on: ubuntu-latest
+  25: - uses: actions/checkout@v7
+  27: - uses: actions/setup-python@v7
+  82: uses: actions/upload-pages-artifact@v5
+  89: uses: actions/deploy-pages@v5
+
+## 2. 升级目标版本（gh api releases/latest）
+actions/checkout                   latest = v7.0.1
+actions/setup-python               latest = v7.1.0
+actions/upload-pages-artifact      latest = v5.0.0
+actions/deploy-pages               latest = v5.0.1
+
+## 3. 各 action 的 runs.using 与关键输入/默认值
+
+### actions/checkout @ v7.0.1
+    using: node24
+    persist-credentials:
+
+### actions/setup-python @ v7.1.0
+    using: 'node24'
+    python-version:
+
+### actions/upload-pages-artifact @ v5.0.0
+    using: composite
+  name: "Upload GitHub Pages artifact"
+    path:
+    include-hidden-files:
+
+### actions/deploy-pages @ v5.0.1
+    using: 'node24'
+    artifact_name:
+    preview:
+
+## 4. upload-pages-artifact@v5 内部 upload-artifact 固定 SHA（Node20 警告来源已随升级消除）
+  uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+
+## 5. 破坏性变更核验（README/CHANGELOG 原文摘录）
+checkout v6: 'persist-credentials now stores credentials in a separate file under $RUNNER_TEMP instead of directly in .git/config' + 'No workflow changes required - git fetch, git push, etc. continue to work automatically' + Docker container action 才需 runner>=v2.329.0
+本仓库的 git push 走 shell step（weekly.yml 的 Commit data back），不是 Docker container action → 不受影响
+checkout v7: 新增 pull_request_target / workflow_run 下阻止 fork PR checkout（本仓库仅 schedule + workflow_dispatch → 无关）
+setup-python v6/v7: 新增 mirror/mirror-token/cache-dependency-path 等可选输入，python-version 语义不变
+upload-pages-artifact v5: 'Update upload-artifact action to version 7 + add include-hidden-files input'；path 输入与默认 artifact 名 github-pages 不变
+deploy-pages v5: 轮询退避/抖动改进；artifact_name 默认 github-pages、输出 page_url 不变

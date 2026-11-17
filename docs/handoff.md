@@ -1,6 +1,6 @@
 # 交接文档（Handoff）
 
-> 写于 2026-11-09（M4b 收官）；更新于 2026-11-16（A1a/A1b/A2 完成上线）；**更新于 2026-11-17（A4 界面美化完成上线）**。用于**另开会话继续遗留可选项目**。
+> 写于 2026-11-09（M4b 收官）；更新于 2026-11-16（A1a/A1b/A2 完成上线）；更新于 2026-11-17（A4 界面美化完成上线）；**更新于 2026-11-17（B 组五项技术债清零，见 §5）**。用于**另开会话继续遗留可选项目**。
 > 读者：接手的新会话（AI）+ 你本人。读完这份 + `CONTEXT.md` 就能接上，不需要读全部历史。
 
 ---
@@ -15,7 +15,7 @@
 | 仓库 | https://github.com/Zengwenj/flu-monitor （public，main） |
 | 本地 | `D:\FluMonitor` |
 | 最新提交 | A4 提交后以 `git log` 为准（2026-11-17，本地 = 远程，工作树干净） |
-| 状态 | M0–M4 全部完成；**A1a / A1b / A2 / A4 界面美化 均已完成上线**（各走完整评审链，见 §7）；A3 支原体专题已取消（2026-11-17），余项见 §5（均为可选小项与技术债，无必做项） |
+| 状态 | M0–M4 全部完成；**A1a / A1b / A2 / A4 界面美化 + B 组五项技术债 均已完成上线**（各走完整评审链，见 §7）；A3 支原体专题已取消（2026-11-17）；余项仅剩 §5「小项②」真机验收（等用户）+ §6 已知坑 |
 | 自动化 | GitHub Actions 每周五北京 10:00：单写者锁管线（六源抓取→指数→构建→状态落盘）→ 隔离发布目录 `site_publish/` 只部署验证过的首页 → bot 回写 data/ |
 | 手动部署 | `gh workflow run weekly.yml --repo Zengwenj/flu-monitor --ref main`（约 90 秒；含 workflow_dispatch） |
 
@@ -89,12 +89,14 @@ site/  生成物（不进 git）；site_publish/ 同（.gitignore）
 ### 待做（均为可选）
 - **小项**：①~~`locations.csv` aliases 列全空~~ **已完成（2026-11-17）**：审核别名 14 单位 16 条入库（蓉城/锦城=成都、哈市/冰城=哈尔滨、羊城/鹏城/星城/泉城/榕城/春城/北国春城/乌市/呼市/申城/山城/金陵；江城弃用——武汉/吉林市两用），用户批准，留痕 changes.log。**注意**：A2 套件 Q6 的 changes.log 与 locations.csv 两个 S0 pin 从此预期失败（授权漂移），失败集合基线=Q6 三项（含 flu_north 既有漂移）；新基线 pin：locations.csv `ddbf3888…`。②读屏/触屏/IME/窄屏**真机**验收：清单已备 `docs/real-device-checklist.md`，待用户真机执行后关闭 ③~~文档历史叙述核对~~ **已完成（2026-11-17）**：roadmap M5 范围与「当前位置」已同步实际状态（A2/A1b/A4 落地、A3 取消），冲突时仍以归档任务文档为准
 
-### B 小技术债
-1. `sentinel_national_rates.csv` week_start 全空（X 轴用"第N周"）
-2. 排序缺口 11 周两种原因未在页面细分（需 join changes.log）
-3. changes.log 部分历史行是 4 列旧契约（A1a 前），套件已按历史变体接纳
-4. Actions 弃用提醒：Node20 强制 24、ubuntu-latest→26 → 未来升级 `actions/*`
-5. `.trellis/workspace/` 日志敏感排查
+### B 小技术债（2026-11-17 五项全部处理，任务 `archive/2026-11/11-17-tech-debt-b`）
+1. ✅ `sentinel_national_rates.csv` week_start 全空 → 已回填 2288 行 / 104 周（2024-11-11..2026-11-02），`fetch_sentinel.write_week` 经新增 `iso_week_start()` 真算 ISO 周一（非法周次返回空串）。**页面数值零变化**（该列不被 `build_site` 消费，产物 SHA-256 前后一致）。
+2. ✅ 排序缺口原因细分 → `build_site.rank_gap_cause(y,w)` 读 `changes.log` 的 ranks 行（取最后一条，兼容 4/5 列），`region_rank_block` 的 `rank_unavailable` 占位分支追加「（该期为月度合并版，表2/3归属周次不明）」/「（该期表2版式差异，解析未取得）」。只复述本工具记录，不断言官方原因；当前锚周正常故线上暂无可见变化。
+3. ✅ changes.log 4 列旧契约 → **记录性关闭，不改写**（147 行 = 5 列 143 + 4 列 4；4 列行为 2025W33 table_sum_check / 2026W11 cover_leftover_issue，各重复一次）。套件已接纳，`rank_gap_cause` 亦兼容。
+4. ✅ Actions 大版本升级（消除 Node20/ubuntu 弃用提示）：`checkout@v7`、`setup-python@v7`、`upload-pages-artifact@v5`、`deploy-pages@v5`；`runs-on: ubuntu-latest` 保留（GitHub 已自动迁 26）。**下次再看到弃用提示，先查各 action 的 release，别再靠记忆猜版本**；`upload-pages-artifact` 的 Node20 警告来自其内部 pin 的 `upload-artifact`，只能靠升它本体消除。
+5. ✅ `.trellis/workspace/` 敏感排查 → 3 个 tracked 文件零命中；另扫 196 个 .trellis tracked 文件仅 `.trellis/.template-hashes.json` 一例误报（sha256 串内数字片段被手机号正则误匹配）。
+
+> 数据写入换行契约（本节实测，勿当 bug）：`data_io.atomic_write_csv` 用 `newline=""` → Windows 下写 CRLF，而 `.gitattributes` 规定 `data/*.csv text eol=lf` → 工作副本 CRLF、提交归一为 LF。`changes.log` 追加行同样是 CRLF（历史 146 行 LF）。
 
 ### C 外部限制（不可改，页面已诚实标注）
 成都无市级周度数据 / 黑龙江非每周发布（42+1+54 对账口径）/ 重庆版权只链接 / 多病原历史仅 2 年 / 境外连通性可能变化
