@@ -87,7 +87,7 @@ site/  生成物（不进 git）；site_publish/ 同（.gitignore）
 - **A3 支原体专题 / 细菌维度**：用户 2026-11-17 决定不做（支原体趋势图、CHINET 半年报耐药率均不实施）
 
 ### 待做（均为可选）
-- **小项**：①`locations.csv` aliases 列全空——审核别名入库可提升简称命中（如"蓉城""哈市"；数据补录，非代码）②读屏/触屏/IME/窄屏**真机**验收未做（自动断言已覆盖 aria/44px/320/360/WCAG）③`docs/handoff.md` 与 `docs/roadmap.md` 的历史叙述以归档任务文档为准
+- **小项**：①~~`locations.csv` aliases 列全空~~ **已完成（2026-11-17）**：审核别名 14 单位 16 条入库（蓉城/锦城=成都、哈市/冰城=哈尔滨、羊城/鹏城/星城/泉城/榕城/春城/北国春城/乌市/呼市/申城/山城/金陵；江城弃用——武汉/吉林市两用），用户批准，留痕 changes.log。**注意**：A2 套件 Q6 的 changes.log 与 locations.csv 两个 S0 pin 从此预期失败（授权漂移），失败集合基线=Q6 三项（含 flu_north 既有漂移）；新基线 pin：locations.csv `ddbf3888…`。②读屏/触屏/IME/窄屏**真机**验收：清单已备 `docs/real-device-checklist.md`，待用户真机执行后关闭 ③~~文档历史叙述核对~~ **已完成（2026-11-17）**：roadmap M5 范围与「当前位置」已同步实际状态（A2/A1b/A4 落地、A3 取消），冲突时仍以归档任务文档为准
 
 ### B 小技术债
 1. `sentinel_national_rates.csv` week_start 全空（X 轴用"第N周"）
