@@ -26,7 +26,7 @@ id,name,type,parent_id,direct_under_province,aliases,monitor_coverage,source
 141000,临汾市,prefecture,140000,false,,true,cc0
 141100,吕梁市,prefecture,140000,false,,true,cc0
 150000,内蒙古自治区,province,,false,,true,cc0
-150100,呼和浩特市,prefecture,150000,false,,true,cc0
+150100,呼和浩特市,prefecture,150000,false,呼市,true,cc0
 150200,包头市,prefecture,150000,false,,true,cc0
 150300,乌海市,prefecture,150000,false,,true,cc0
 150400,赤峰市,prefecture,150000,false,,true,cc0
@@ -54,7 +54,7 @@ id,name,type,parent_id,direct_under_province,aliases,monitor_coverage,source
 211300,朝阳市,prefecture,210000,false,,true,cc0
 211400,葫芦岛市,prefecture,210000,false,,true,cc0
 220000,吉林省,province,,false,,true,cc0
-220100,长春市,prefecture,220000,false,,true,cc0
+220100,长春市,prefecture,220000,false,北国春城,true,cc0
 220200,吉林市,prefecture,220000,false,,true,cc0
 220300,四平市,prefecture,220000,false,,true,cc0
 220400,辽源市,prefecture,220000,false,,true,cc0
@@ -64,7 +64,7 @@ id,name,type,parent_id,direct_under_province,aliases,monitor_coverage,source
 220800,白城市,prefecture,220000,false,,true,cc0
 222400,延边朝鲜族自治州,prefecture,220000,false,,true,cc0
 230000,黑龙江省,province,,false,,true,cc0
-230100,哈尔滨市,prefecture,230000,false,,true,cc0
+230100,哈尔滨市,prefecture,230000,false,哈市|冰城,true,cc0
 230200,齐齐哈尔市,prefecture,230000,false,,true,cc0
 230300,鸡西市,prefecture,230000,false,,true,cc0
 230400,鹤岗市,prefecture,230000,false,,true,cc0
@@ -77,9 +77,9 @@ id,name,type,parent_id,direct_under_province,aliases,monitor_coverage,source
 231100,黑河市,prefecture,230000,false,,true,cc0
 231200,绥化市,prefecture,230000,false,,true,cc0
 232700,大兴安岭地区,prefecture,230000,false,,true,cc0
-310000,上海市,province,,false,,true,cc0
+310000,上海市,province,,false,申城,true,cc0
 320000,江苏省,province,,false,,true,cc0
-320100,南京市,prefecture,320000,false,,true,cc0
+320100,南京市,prefecture,320000,false,金陵,true,cc0
 320200,无锡市,prefecture,320000,false,,true,cc0
 320300,徐州市,prefecture,320000,false,,true,cc0
 320400,常州市,prefecture,320000,false,,true,cc0
@@ -122,7 +122,7 @@ id,name,type,parent_id,direct_under_province,aliases,monitor_coverage,source
 341700,池州市,prefecture,340000,false,,true,cc0
 341800,宣城市,prefecture,340000,false,,true,cc0
 350000,福建省,province,,false,,true,cc0
-350100,福州市,prefecture,350000,false,,true,cc0
+350100,福州市,prefecture,350000,false,榕城,true,cc0
 350200,厦门市,prefecture,350000,false,,true,cc0
 350300,莆田市,prefecture,350000,false,,true,cc0
 350400,三明市,prefecture,350000,false,,true,cc0
@@ -144,7 +144,7 @@ id,name,type,parent_id,direct_under_province,aliases,monitor_coverage,source
 361000,抚州市,prefecture,360000,false,,true,cc0
 361100,上饶市,prefecture,360000,false,,true,cc0
 370000,山东省,province,,false,,true,cc0
-370100,济南市,prefecture,370000,false,,true,cc0
+370100,济南市,prefecture,370000,false,泉城,true,cc0
 370200,青岛市,prefecture,370000,false,,true,cc0
 370300,淄博市,prefecture,370000,false,,true,cc0
 370400,枣庄市,prefecture,370000,false,,true,cc0
@@ -198,7 +198,7 @@ id,name,type,parent_id,direct_under_province,aliases,monitor_coverage,source
 429006,天门市,province_direct_county,420000,true,,true,cc0
 429021,神农架林区,province_direct_county,420000,true,,true,cc0
 430000,湖南省,province,,false,,true,cc0
-430100,长沙市,prefecture,430000,false,,true,cc0
+430100,长沙市,prefecture,430000,false,星城,true,cc0
 430200,株洲市,prefecture,430000,false,,true,cc0
 430300,湘潭市,prefecture,430000,false,,true,cc0
 430400,衡阳市,prefecture,430000,false,,true,cc0
@@ -213,9 +213,9 @@ id,name,type,parent_id,direct_under_province,aliases,monitor_coverage,source
 431300,娄底市,prefecture,430000,false,,true,cc0
 433100,湘西土家族苗族自治州,prefecture,430000,false,,true,cc0
 440000,广东省,province,,false,,true,cc0
-440100,广州市,prefecture,440000,false,,true,cc0
+440100,广州市,prefecture,440000,false,羊城,true,cc0
 440200,韶关市,prefecture,440000,false,,true,cc0
-440300,深圳市,prefecture,440000,false,,true,cc0
+440300,深圳市,prefecture,440000,false,鹏城,true,cc0
 440400,珠海市,prefecture,440000,false,,true,cc0
 440500,汕头市,prefecture,440000,false,,true,cc0
 440600,佛山市,prefecture,440000,false,,true,cc0
@@ -269,9 +269,9 @@ id,name,type,parent_id,direct_under_province,aliases,monitor_coverage,source
 469028,陵水黎族自治县,province_direct_county,460000,true,,true,cc0
 469029,保亭黎族苗族自治县,province_direct_county,460000,true,,true,cc0
 469030,琼中黎族苗族自治县,province_direct_county,460000,true,,true,cc0
-500000,重庆市,province,,false,,true,cc0
+500000,重庆市,province,,false,山城,true,cc0
 510000,四川省,province,,false,,true,cc0
-510100,成都市,prefecture,510000,false,,true,cc0
+510100,成都市,prefecture,510000,false,蓉城|锦城,true,cc0
 510300,自贡市,prefecture,510000,false,,true,cc0
 510400,攀枝花市,prefecture,510000,false,,true,cc0
 510500,泸州市,prefecture,510000,false,,true,cc0
@@ -303,7 +303,7 @@ id,name,type,parent_id,direct_under_province,aliases,monitor_coverage,source
 522600,黔东南苗族侗族自治州,prefecture,520000,false,,true,cc0
 522700,黔南布依族苗族自治州,prefecture,520000,false,,true,cc0
 530000,云南省,province,,false,,true,cc0
-530100,昆明市,prefecture,530000,false,,true,cc0
+530100,昆明市,prefecture,530000,false,春城,true,cc0
 530300,曲靖市,prefecture,530000,false,,true,cc0
 530400,玉溪市,prefecture,530000,false,,true,cc0
 530500,保山市,prefecture,530000,false,,true,cc0
@@ -369,7 +369,7 @@ id,name,type,parent_id,direct_under_province,aliases,monitor_coverage,source
 640400,固原市,prefecture,640000,false,,true,cc0
 640500,中卫市,prefecture,640000,false,,true,cc0
 650000,新疆维吾尔自治区,province,,false,,true,cc0
-650100,乌鲁木齐市,prefecture,650000,false,,true,cc0
+650100,乌鲁木齐市,prefecture,650000,false,乌市,true,cc0
 650200,克拉玛依市,prefecture,650000,false,,true,cc0
 650400,吐鲁番市,prefecture,650000,false,,true,cc0
 650500,哈密市,prefecture,650000,false,,true,cc0
