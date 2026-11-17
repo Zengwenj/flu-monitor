@@ -1,8 +1,8 @@
 iso_year,iso_week,week_start,setting,pathogen,positive_pct,sample_count,total_samples,source_url,source_pubdate,fetched_at,status
-2026,45,2026-11-02,住院,人偏肺病毒,5.56,72,222,https://www.hljcdc.org/pc/index.php?c=zixundetail&a=index&id=7266&lid=120,2026-11-10,2026-11-17T01:44:32,ok
-2026,45,2026-11-02,住院,博卡病毒,6.94,72,222,https://www.hljcdc.org/pc/index.php?c=zixundetail&a=index&id=7266&lid=120,2026-11-10,2026-11-17T01:44:32,ok
-2026,45,2026-11-02,住院,流感病毒,5.56,72,222,https://www.hljcdc.org/pc/index.php?c=zixundetail&a=index&id=7266&lid=120,2026-11-10,2026-11-17T01:44:32,ok
-2026,45,2026-11-02,住院,鼻病毒,13.89,72,222,https://www.hljcdc.org/pc/index.php?c=zixundetail&a=index&id=7266&lid=120,2026-11-10,2026-11-17T01:44:32,ok
-2026,45,2026-11-02,门急诊,人偏肺病毒,6.67,150,222,https://www.hljcdc.org/pc/index.php?c=zixundetail&a=index&id=7266&lid=120,2026-11-10,2026-11-17T01:44:32,ok
-2026,45,2026-11-02,门急诊,流感病毒,4,150,222,https://www.hljcdc.org/pc/index.php?c=zixundetail&a=index&id=7266&lid=120,2026-11-10,2026-11-17T01:44:32,ok
-2026,45,2026-11-02,门急诊,鼻病毒,8,150,222,https://www.hljcdc.org/pc/index.php?c=zixundetail&a=index&id=7266&lid=120,2026-11-10,2026-11-17T01:44:32,ok
+2026,45,2026-11-02,住院,人偏肺病毒,5.56,72,222,https://www.hljcdc.org/pc/index.php?c=zixundetail&a=index&id=7266&lid=120,2026-11-10,2026-11-17T02:12:01,ok
+2026,45,2026-11-02,住院,博卡病毒,6.94,72,222,https://www.hljcdc.org/pc/index.php?c=zixundetail&a=index&id=7266&lid=120,2026-11-10,2026-11-17T02:12:01,ok
+2026,45,2026-11-02,住院,流感病毒,5.56,72,222,https://www.hljcdc.org/pc/index.php?c=zixundetail&a=index&id=7266&lid=120,2026-11-10,2026-11-17T02:12:01,ok
+2026,45,2026-11-02,住院,鼻病毒,13.89,72,222,https://www.hljcdc.org/pc/index.php?c=zixundetail&a=index&id=7266&lid=120,2026-11-10,2026-11-17T02:12:01,ok
+2026,45,2026-11-02,门急诊,人偏肺病毒,6.67,150,222,https://www.hljcdc.org/pc/index.php?c=zixundetail&a=index&id=7266&lid=120,2026-11-10,2026-11-17T02:12:01,ok
+2026,45,2026-11-02,门急诊,流感病毒,4,150,222,https://www.hljcdc.org/pc/index.php?c=zixundetail&a=index&id=7266&lid=120,2026-11-10,2026-11-17T02:12:01,ok
+2026,45,2026-11-02,门急诊,鼻病毒,8,150,222,https://www.hljcdc.org/pc/index.php?c=zixundetail&a=index&id=7266&lid=120,2026-11-10,2026-11-17T02:12:01,ok
