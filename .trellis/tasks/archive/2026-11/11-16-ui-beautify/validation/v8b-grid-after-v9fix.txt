@@ -1,0 +1,32 @@
+
+== 899px == display=block cols=none
+   sc     gc=auto/auto w= 640 top=271
+   flu    gc=auto/auto w= 640 top=626
+   hist   gc=auto/auto w= 640 top=872
+   rank   gc=auto/auto w= 640 top=1605
+   trend  gc=auto/auto w= 640 top=2078
+   child  gc=auto/auto w= 640 top=2431
+
+== 900px == display=grid cols=53.3281px 53.3281px 53.3281px 53.3281px 53.3281px 53.3281px 53.3281px 53.3281px 53.3281px 53.3281px 53.3281px 53.3281px
+   sc     gc=span 7/auto w= 493 top=279
+   flu    gc=span 5/auto w= 347 top=279
+   hist   gc=span 7/auto w= 493 top=642
+   rank   gc=span 5/auto w= 347 top=642
+   trend  gc=span 7/auto w= 493 top=1421
+   child  gc=span 5/auto w= 347 top=1421
+
+== 1024px == display=grid cols=61.6562px 61.6562px 61.6562px 61.6562px 61.6562px 61.6562px 61.6562px 61.6562px 61.6562px 61.6562px 61.6562px 61.6562px
+   sc     gc=span 7/auto w= 552 top=277
+   flu    gc=span 5/auto w= 388 top=277
+   hist   gc=span 7/auto w= 552 top=640
+   rank   gc=span 5/auto w= 388 top=640
+   trend  gc=span 7/auto w= 552 top=1400
+   child  gc=span 5/auto w= 388 top=1400
+
+== 1280px == display=grid cols=71.6562px 71.6562px 71.6562px 71.6562px 71.6562px 71.6562px 71.6562px 71.6562px 71.6562px 71.6562px 71.6562px 71.6562px
+   sc     gc=span 7/auto w= 622 top=277
+   flu    gc=span 5/auto w= 438 top=277
+   hist   gc=span 7/auto w= 622 top=640
+   rank   gc=span 5/auto w= 438 top=640
+   trend  gc=span 7/auto w= 622 top=1381
+   child  gc=span 5/auto w= 438 top=1381

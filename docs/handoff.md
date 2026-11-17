@@ -1,6 +1,6 @@
 # 交接文档（Handoff）
 
-> 写于 2026-11-09（M4b 收官）；**更新于 2026-11-16**（A1a/A1b/A2 全部完成上线后）。用于**另开会话继续遗留可选项目**。
+> 写于 2026-11-09（M4b 收官）；更新于 2026-11-16（A1a/A1b/A2 完成上线）；**更新于 2026-11-17（A4 界面美化完成上线）**。用于**另开会话继续遗留可选项目**。
 > 读者：接手的新会话（AI）+ 你本人。读完这份 + `CONTEXT.md` 就能接上，不需要读全部历史。
 
 ---
@@ -14,8 +14,8 @@
 | 线上 | https://zengwenj.github.io/flu-monitor/ |
 | 仓库 | https://github.com/Zengwenj/flu-monitor （public，main） |
 | 本地 | `D:\FluMonitor` |
-| 最新提交 | `cf06308`（2026-11-16，本地 = 远程，工作树干净） |
-| 状态 | M0–M4 全部完成；**遗留项 A1a 流感历史回补 / A1b 历年同周对比 / A2 区域搜索版 均已完成并上线**（各走完整评审链，见 §7） |
+| 最新提交 | A4 提交后以 `git log` 为准（2026-11-17，本地 = 远程，工作树干净） |
+| 状态 | M0–M4 全部完成；**A1a / A1b / A2 / A4 界面美化 均已完成上线**（各走完整评审链，见 §7）；余 A3 支原体专题 |
 | 自动化 | GitHub Actions 每周五北京 10:00：单写者锁管线（六源抓取→指数→构建→状态落盘）→ 隔离发布目录 `site_publish/` 只部署验证过的首页 → bot 回写 data/ |
 | 手动部署 | `gh workflow run weekly.yml --repo Zengwenj/flu-monitor --ref main`（约 90 秒；含 workflow_dispatch） |
 
@@ -47,7 +47,7 @@ src/compute_index.py     Goldstein 指数 --targets south,north,heilongjiang（�
 src/search_catalog.py    省市目录+片区映射+查询配方（397 可查 + 3 港澳台占位）
 src/data_io.py           原子写（.tmp_writes 临时→fsync→os.replace）
 src/run_pipeline.py      管线编排：锁/超时/状态聚合/site_ready 门/隔离发布 site_publish
-src/build_site.py        单页渲染：成都默认六卡 + 搜索框（内联 JS 仅本地候选/消歧/切换）+ 12 槽位模板
+src/build_site.py        单页渲染：成都默认六卡 + 搜索框（内联 JS 仅本地候选/消歧/切换）+ 12 槽位模板 + CSS_THEME 主题层（{css} 注入，A4）
 src/write_run_status.py  v2 状态（schema 2，按源/目标分状态；缺键=未知不默认成功）
 src/update_sichuan.py    四川月度手动录入（D19 不变）
 run_local.bat            本地一键（走 run_pipeline --local）
@@ -77,15 +77,15 @@ site/  生成物（不进 git）；site_publish/ 同（.gitignore）
 
 ## 5. 遗留可选项目（按收益排序；A1/A2 已完成）
 
-### ✅ 已完成（2026-11-11 → 11-16）
+### ✅ 已完成（2026-11-11 → 11-17）
 - **A1a** 流感历史回补：南/北方各 201 周（2023W1 起）、分母 bug 修复（旧值稀释 21–50%）、原子写、缓存来源绑定。任务 `archive/2026-11/11-11-flu-south-backfill`
 - **A1b** 历年同周对比卡（A1b 历史 SVG+对照表）。任务 `archive/2026-11/11-12-flu-south-history-view`
 - **A2** 成都默认 + 全国省市离线搜索单页（397 单位、双产品片区映射、六态降级、发布隔离）。任务 `archive/2026-11/11-12-regional-monitor`（同一任务先做五页版后被用户纠正为搜索版，过程文档都在）
+- **A4** 界面美化（2026-11-17）：浅色医疗仪表盘主题（CSS_THEME 常量 + `{css}` 注入，冻结函数零改动）；≥900px 双列 12 栅格 `:has()` 内容定位（三行 7+5，**用户 2026-11-17 批准，正式偏离 design §5.1 的 12/5+7/5+7/12**，批准记录在任务 validation/v9-fix-record.md §7）；四川卡五级色条标尺 + 四态状态徽章（st-ok/st-wait/st-fail/st-unknown）；GOLDSTEIN 眉标；SVG 文字墨色重着色（文字/线条边界）；WCAG AA 全达标（360/1280 两档低于 AA=0，SVG 文本按 computed fill 计）；≥720 关键数字 46px。验证工具链全部留在 `.tmp_a4/`（probe_style/probe_narrow/probe_grid/check_view_toggle/check_lit/v10_recheck 等）。任务 `archive/2026-11/11-16-ui-beautify`
 
 ### 待做
 - **A3 支原体专题 / 细菌维度**：支原体趋势图（数据已有，纯展示层）；CHINET 半年报耐药率（≠阳性率）
-- **A4 界面美化**（最后做）
-- **小项**：①`locations.csv` aliases 列全空——审核别名入库可提升简称命中（如"蓉城""哈市"；数据补录，非代码）②读屏/触屏/IME/窄屏真机验收未做（自动断言已覆盖 aria/44px/320/360）③`docs/handoff.md` 与 `docs/roadmap.md` 的历史叙述以归档任务文档为准
+- **小项**：①`locations.csv` aliases 列全空——审核别名入库可提升简称命中（如"蓉城""哈市"；数据补录，非代码）②读屏/触屏/IME/窄屏**真机**验收未做（自动断言已覆盖 aria/44px/320/360/WCAG）③`docs/handoff.md` 与 `docs/roadmap.md` 的历史叙述以归档任务文档为准
 
 ### B 小技术债
 1. `sentinel_national_rates.csv` week_start 全空（X 轴用"第N周"）
@@ -110,6 +110,8 @@ site/  生成物（不进 git）；site_publish/ 同（.gitignore）
 9. **pwsh 环境**：heredoc 不支持、内联 python 中文引号必炸 → **一律先写脚本文件再跑**；日志重定向用 `python -u`；多关键字检索用 python 脚本（`|` 会被当参数）
 10. **离线检查**：只查加载型外部资源；`<a href>` 官方链接允许
 11. **旧套件**：`check_history_compat.py`/`check_regional.py` 在单页时代有 19 条五页入口断言预期失败——逐 ID 去向见 `11-12-regional-monitor/validation/history-case-map.md`（保留 111/等效 13/恢复 3/废弃 11），勿当门禁整体跑
+12. **视觉回归工具链（A4 遗产，在 `.tmp_a4/`，未进 git）**：headless Chrome `--window-size` 有约 500px 下限，测窄屏必须走同源 iframe（probe_narrow.py/probe_style.py 的做法）+ `--allow-file-access-from-files`；截图同样先落 560 宽再用 PIL 裁切（**Windows 上 PIL 必须 `with Image.open(...)` 关句柄再 replace，否则 WinError 32**）；SVG 文本对比度要读 computed `fill` 不是 `color`（probe_style.py 已实现 + `--selftest` 自检）；GLM 模型不能读图，视觉判断派 observer。若 `.tmp_a4/` 已清理，工具按 validation/v9-fix-record.md §8 的描述可重建
+13. **A4 后 build_site.py 结构**：CSS 主题在模块级常量 `CSS_THEME`（原始字符串），经 PAGE_TPL 的 `{css}` 占位注入——**新增样式改 CSS_THEME，勿在 PAGE_TPL 里写双花括号**；桌面栅格 `.card:has()` 按**内容签名**定位（adv=四川/kv=南方片/hist-tbl=历年/rank=排行/trendrow=趋势/childg=儿童），卡 div 本身不能加类（Q10 按字面切块）
 
 ## 7. 工作流程约定（用户明确要求的门，勿跳）
 
@@ -124,7 +126,7 @@ site/  生成物（不进 git）；site_publish/ 同（.gitignore）
   → 用户批准提交 → 分两笔提交（docs / feat）+ pull 合并 bot + push + workflow_dispatch 部署 + 线上验证
 ```
 
-**证据**：A1a 评审抓到 4 项 BLOCKER、A2 抓到 7+7 项——这套门不是形式。评审全程用冻结快照（round/revision 分离），实施复核同样分轮闭环。
+**证据**：A1a 评审抓到 4 项 BLOCKER、A2 抓到 7+7 项、A4 抓到 7+2 项（含「探针假通过」「断言对象错位」这类度量层缺陷）；A4 oracle 复核走了 3 轮（INCONCLUSIVE→BLOCKED→PASS，工具缺陷逐轮修复）——这套门不是形式。评审全程用冻结快照（round/revision 分离），实施复核同样分轮闭环。
 
 其它协作偏好：决策/汇报用中文、区分事实/推测/建议；操作写双击级；关键选择给推荐项；实质进展派 fixer 写 mnemon 记忆。
 

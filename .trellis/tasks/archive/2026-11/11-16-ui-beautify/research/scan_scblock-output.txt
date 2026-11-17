@@ -1,0 +1,65 @@
+sichuan_block: 653-668
+_sc_body: 1075-1112
+trend_block: 721-731
+ranking_block: 732-743
+child_block: 744-763
+flu_body_html: 1010-1049
+_card: 764-767
+
+== sichuan_block 全文 ==
+def sichuan_block() -> dict:
+    rows = read_csv(SC_CSV)
+    if not rows:
+        return {"state": "empty"}
+    latest = max(rows, key=lambda r: (int(r["year"]), int(r["month"])))
+    today = date.today()
+    if (today.year, today.month) == (int(latest["year"]), int(latest["month"])):
+        line = f"数据正常 · {latest['month']}月 · 来源发布 {latest['source_pubdate']}"
+    else:
+        line = f"{latest['month']}月已确认等级 · 本月待更新"
+    advice = LEVEL_ADVICE.get(latest["level"], [])
+    return {"state": "ok", **latest, "line": line, "advice": advice}
+
+
+# ---------------- M3b：SVG 趋势图 ----------------
+
+
+== _sc_body 前 40 行 ==
+def _sc_body(sc: dict) -> str:
+    if sc["state"] == "ok":
+        advice = "".join(f"<li>{a}</li>" for a in sc["advice"])
+        return f"""
+    <div class="big">{sc['level']} 级 · {sc['level_name']}<span class="unit">（{sc['year']}年{sc['month']}月）</span></div>
+    <div class="meta"><span class="tag">{sc['line']}</span><span class="tag">省级官方分级</span></div>
+    <ol class="adv">{advice}</ol>
+    <div class="src">防控建议为官方原文：四川省疾控"流感指数分级标准表" {sc['level']} 级 · <a href="{sc['source_url']}" target="_blank">当期发布</a></div>"""
+    return '<div class="big">？</div><div class="meta"><span class="tag">官方分级未获取 · 状态未知</span></div>'
+
+
+FOOT_COMMON = ("    本工具不合成综合风险总分，各块独立标注口径；排序为名称非数值；"
+               "箭头仅表较上周方向；Goldstein 指数为相对强度指数（ILI%×阳性率），非人群感染率。\n"
+               "    据中疾控《版权与免责声明》注明：稿件来源：中国疾病预防控制中心；"
+               "WHO FluNet 数据为国家层面公开数据。\n")
+
+FOOT_CD = ("    口径说明：四川分级为省疾控平原区（月度）；流感指数为南方片哨点（周度）；"
+           "多病原排行/趋势/儿童卡均为全国哨点口径（非成都实测）。\n"
+            "    查询结果中：黑龙江为省级官方周报口径；重庆仅官方入口；其余省市无当地数据时"
+            "只展示省级/片区/全国参考，均明确标注，不冒充当地实测。\n")
+
+
+CARD_TITLES = {
+    "sc": "四川官方流感分级（月度 · 成都=平原区）",
+    "flu_south": "南方片流感趋势（周度）",
+    "flu_north": "北方片流感趋势（周度）",
+    "flu_hlj": "黑龙江流感指数（省级周报 · 周度）",
+    "hist_south": "南方片流感指数 · 历年同周对比",
+    "names_south": "南方片门急诊 / 住院前三名（周度）",
+    "names_north": "北方片门急诊 / 住院前三名（周度）",
+    "hlj_sent": "黑龙江哨点监测 · 官方正文部分观测（周度）",
+    "rank": "全国多病原活跃度排行（周度）",
+    "trend": "流感 / 新冠 / RSV 趋势（周度 · 本年度）",
+    "child": "儿童分龄高发前三（周度）",
+    "cq": "重庆 · 官方入口",
+}
+
+

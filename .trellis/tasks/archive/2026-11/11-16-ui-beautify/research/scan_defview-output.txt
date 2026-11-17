@@ -1,0 +1,25 @@
+== #default-view 后 400 字符 ==
+'<div id="default-view">\n  <div class="banner">ℹ 本地构建 · 未提供本次运行记录 · 页面按各源存量数据展示</div>\n  \n  <div class="card">\n    <h2>四川官方流感分级（月度 · 成都=平原区）</h2>\n    \n    <div class="big">IV 级 · 活跃期<span class="unit">（2026年10月）</span></div>\n    <div class="meta"><span class="tag">10月已确认等级 · 本月待更新</span><span class="tag">省级官方分级</span></div>\n    <ol class="adv"><li>（1）勤洗手，打喷嚏或咳嗽时用纸巾或袖子遮住口、鼻；</li><li>（2）避免带病上课上班；</li>'
+banner class 出现次数: 1
+card 字面出现次数: 18
+card 带类变体: ['<div class="card">', '<div class="card">', '<div class="card">']
+
+== 设计师引用的函数定位 ==
+def _card: 行 [764]
+def _sc_body: 行 [1075]
+def flu_body_html: 行 [1010]
+def _src_chip: 行 [1573]
+def _compute_chip: 行 [1594]
+def _slot_templates: 行 [1621]
+def banner_html: 行 []
+def run_banner: 行 [71]
+def render: 行 [1666]
+
+== Q10/Q11 切块字面（check_search_query.py）==
+86: 'id="query-view"', 'id="default-view"'):
+618: i = PAGE.find('<div id="default-view">')
+626: """默认视图内、标题含 marker 的卡片块（<div class="card"> → 下一个）。"""
+631: start = seg.rfind('  <div class="card">', 0, pos)
+634: end = seg.find('  <div class="card">', pos)
+641: self.assertIn(f'<div class="big">{last["goldstein_index"]}<span class="unit">',
+775: self.assertIn('<div id="default-view">\n  <div class="banner">', PAGE

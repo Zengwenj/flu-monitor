@@ -1,0 +1,12 @@
+SVG 鐗囨鏁?8
+[0] viewBox=0 0 280 192 text鏁?11 font-sizes=['12']
+[1] viewBox=0 0 28 12 text鏁?0 font-sizes=[]
+[2] viewBox=0 0 28 12 text鏁?0 font-sizes=[]
+[3] viewBox=0 0 28 12 text鏁?0 font-sizes=[]
+[4] viewBox=0 0 28 12 text鏁?0 font-sizes=[]
+[5] viewBox=0 0 300 70 text鏁?3 font-sizes=['11', '9']
+    y=68 鍛戒腑: ['2024W46', '2026W45']
+[6] viewBox=0 0 300 70 text鏁?3 font-sizes=['11', '9']
+    y=68 鍛戒腑: ['2024W46', '2026W45']
+[7] viewBox=0 0 300 70 text鏁?3 font-sizes=['11', '9']
+    y=68 鍛戒腑: ['2024W46', '2026W45']

@@ -1,0 +1,130 @@
+
+===== H. 婧愮爜缂栫爜 / 琛屽熬 =====
+bytes=98783
+BOM=False
+CRLF=0  LF_total=2018
+utf8_decode=OK lines=2018
+涓枃鏍蜂緥瀛樺湪=True
+sha256=2fb8c697f2e0aa331d909d317aa8f52d8fad65b4e9e5230fffa493f8a91a3483
+
+===== D. 浜х墿绂佷覆 / script 璁℃暟 =====
+  '<script src': 0
+  'fetch(': 0
+  '@import': 0
+  'url(http': 0
+  '<script' total: 3
+  '  <div class="card">': 18
+  'rail' occurrences: 1
+  '鍥涘窛瀹樻柟娴佹劅鍒嗙骇' count: 1
+
+===== B/ADVISORY. 鍐荤粨 pin 鐙珛鏋氫妇 =====
+pin_file=D:\FluMonitor\.trellis\tasks\11-16-ui-beautify\plan-freeze-r3.md
+pins found=0
+drift count=0 -> []
+
+===== C. git 宸ヤ綔鏍戠姸鎬?=====
+
+===== git status --porcelain =====
+$ git status --porcelain
+M src/build_site.py
+?? .trellis/tasks/11-16-ui-beautify/
+exit=0
+
+===== git diff --stat =====
+$ git diff --stat
+src/build_site.py | 187 ++++++++++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 173 insertions(+), 14 deletions(-)
+warning: in the working copy of 'src/build_site.py', LF will be replaced by CRLF the next time Git touches it
+exit=0
+
+-- data/ 鐩綍鏄惁琚湰娆℃敼鍔ㄨЕ纰?--
+data/ status = '' (绌?骞插噣)
+flu_north.csv 鏈€鍚庢敼鍔ㄦ彁浜?= deaefd9 chore(data): weekly update 2026-11-16
+
+===== A. check_history_compat --check Reg =====
+$ C:\Users\zengw\anaconda3\python.exe -X utf8 D:\FluMonitor\.tmp_a4\reg\11-12-regional-monitor\validation\check_history_compat.py --check Reg
+test_01_source_identical (__main__.Reg.test_01_source_identical) ... ok
+test_02_outputs_identical_real_data (__main__.Reg.test_02_outputs_identical_real_data) ... ok
+test_03_v1_banner_history (__main__.Reg.test_03_v1_banner_history)
+v1 鍘嗗彶 run_status 鍏煎锛歠ailed鈫掓湭鑳借幏鍙栵紱local 鏃犵姸鎬佹í骞呫€?... ok
+test_03b_v2_banner_contract (__main__.Reg.test_03b_v2_banner_contract)
+S3 钀藉湴 RUN_STATUS_V2 鍚庣敓鏁堬細v2 鏈疆鐘舵€併€乺un_id 涓嶇鏍囧巻鍙层€乴ocal 鎭掔┖銆?... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.151s
+
+OK
+exit=0
+
+===== C. check_search_query =====
+$ C:\Users\zengw\anaconda3\python.exe -X utf8 D:\FluMonitor\.tmp_a4\reg\11-12-regional-monitor\validation\check_search_query.py
+Q-SUITE FAIL 55/56
+.........................................F..............
+======================================================================
+FAIL: test_freeze_pins_nine_files (__main__.Q6.test_freeze_pins_nine_files)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\FluMonitor\.tmp_a4\reg\11-12-regional-monitor\validation\check_search_query.py", line 377, in test_freeze_pins_nine_files
+    self.assertEqual(self._sha(p), want, f"{name} 鍋忕鍐荤粨 r4 鍩虹嚎")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'f72ec16db39f9191fc00894ed73d367adc3dfdc08a1d0bfd6a586552bb7b8654' != '3851e1dcba1fa74c02c1c581bac659d00a723605de7d61b9951df7e4fa109597'
+- f72ec16db39f9191fc00894ed73d367adc3dfdc08a1d0bfd6a586552bb7b8654
++ 3851e1dcba1fa74c02c1c581bac659d00a723605de7d61b9951df7e4fa109597
+ : flu_north.csv 鍋忕鍐荤粨 r4 鍩虹嚎
+
+----------------------------------------------------------------------
+Ran 56 tests in 3.346s
+
+FAILED (failures=1)
+exit=1
+
+===== C. check_view_toggle =====
+$ C:\Users\zengw\anaconda3\python.exe -X utf8 D:\FluMonitor\.tmp_a4\check_view_toggle.py
+init_ready=True
+  [PASS] A-default-hidden-attr  (dv.hidden=true)
+  [PASS] A-default-display-none  (computed display=none)
+  [PASS] A-query-visible-nonempty  (qv.hidden=false kids=6)
+  [PASS] B-default-restored  (dv.hidden=false display=grid)
+  [PASS] B-query-hidden  (qv.hidden=true)
+  [PASS] C-query-shown-first  (kids=4)
+  [PASS] C-clear-keeps-result  (after clear: qv.hidden=false kids=4 (before 4))
+  [PASS] C-clear-keeps-default-hidden  (dv.hidden=true)
+  [PASS] C-clear-empties-input  (q.value="")
+RESULT: PASS
+exit=0
+
+===== F. probe_narrow measure 320 =====
+$ C:\Users\zengw\anaconda3\python.exe -X utf8 D:\FluMonitor\.tmp_a4\probe_narrow.py measure 320
+{
+ "iw": 320,
+ "cw": 320,
+ "sw": 320,
+ "sh": 2400,
+ "bodyW": 320,
+ "over": []
+}
+exit=0
+
+===== F. probe_narrow measure 360 =====
+$ C:\Users\zengw\anaconda3\python.exe -X utf8 D:\FluMonitor\.tmp_a4\probe_narrow.py measure 360
+{
+ "iw": 360,
+ "cw": 360,
+ "sw": 360,
+ "sh": 2400,
+ "bodyW": 360,
+ "over": []
+}
+exit=0
+
+===== F. probe_narrow measure 900 =====
+$ C:\Users\zengw\anaconda3\python.exe -X utf8 D:\FluMonitor\.tmp_a4\probe_narrow.py measure 900
+{
+ "iw": 900,
+ "cw": 900,
+ "sw": 900,
+ "sh": 2400,
+ "bodyW": 900,
+ "over": []
+}
+exit=0

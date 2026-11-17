@@ -1,0 +1,25 @@
+card 块数=18
+card1: 四川官方流感分级（月度 · 成都=平原区）      命中=['sc']
+card2: 南方片流感趋势（周度）                命中=['flu_south']
+card3: 南方片流感指数 · 历年同周对比           命中=['hist_south']
+card4: 全国多病原活跃度排行（周度）             命中=['rank']
+card5: 流感 / 新冠 / RSV 趋势（周度 · 本年   命中=['trend']
+card6: 儿童分龄高发前三（周度）               命中=['child']
+card7: 黑龙江流感指数（省级周报 · 周度）         命中=['flu_south']
+card8: 黑龙江哨点监测 · 官方正文部分观测（周度）     命中=['child']
+card9: 黑龙江流感指数 · 省级参考（非该市实测）      命中=['flu_south']
+card10: 黑龙江哨点监测 · 省级参考（非该市实测）      命中=['child']
+card11: 南方片流感趋势（周度）                命中=['flu_south']
+card12: 北方片流感趋势（周度）                命中=['flu_south']
+card13: 南方片门急诊 / 住院前三名（周度）         命中=['child']
+card14: 北方片门急诊 / 住院前三名（周度）         命中=['child']
+card15: 全国多病原活跃度排行（周度）             命中=['rank']
+card16: 重庆 · 官方入口                  命中=['flu_south']
+card17: 当地监测数据                     命中=[]
+card18: 省级参考                       命中=[]
+签名 sc(class="adv") 在模板区出现 0 次
+签名 flu_south(class="kv") 在模板区出现 5 次
+签名 hist_south(class="hist-tbl") 在模板区出现 0 次
+签名 rank(class="rank") 在模板区出现 1 次
+签名 trend(class="trendrow") 在模板区出现 0 次
+签名 child(class="childg") 在模板区出现 8 次

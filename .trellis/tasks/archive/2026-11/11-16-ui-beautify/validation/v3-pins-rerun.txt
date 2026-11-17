@@ -1,0 +1,13 @@
+DRIFT changes.log want=51f3ade26d54 got=06d30f363768
+DRIFT flu_north.csv want=3851e1dcba1f got=f72ec16db39f
+DRIFT flu_south.csv want=a471d7c13703 got=5c330cc8c997
+DRIFT flunet_china.csv want=804003504a3f got=ac24f288ff22
+DRIFT heilongjiang_flu.csv want=354c4a3e6cff got=bdb1e5876933
+DRIFT heilongjiang_sentinel.csv want=89b71f6cc8e2 got=3e2de226b562
+DRIFT run_status.json want=b4763864449a got=d4c2a4abb57f
+DRIFT sentinel_national_rates.csv want=5bdfe683895f got=a3b200383f09
+DRIFT sentinel_rank.csv want=766080903351 got=f92e0888c91a
+OK  sichuan_monthly.csv want=1220a66b2825 got=1220a66b2825
+
+鍏?10 pin锛屾紓绉?9 涓細['changes.log', 'flu_north.csv', 'flu_south.csv', 'flunet_china.csv', 'heilongjiang_flu.csv', 'heilongjiang_sentinel.csv', 'run_status.json', 'sentinel_national_rates.csv', 'sentinel_rank.csv']
+

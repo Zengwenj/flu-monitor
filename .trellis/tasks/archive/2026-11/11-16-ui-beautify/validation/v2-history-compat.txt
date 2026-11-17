@@ -1,0 +1,11 @@
+test_01_source_identical (__main__.Reg.test_01_source_identical) ... ok
+test_02_outputs_identical_real_data (__main__.Reg.test_02_outputs_identical_real_data) ... ok
+test_03_v1_banner_history (__main__.Reg.test_03_v1_banner_history)
+v1 鍘嗗彶 run_status 鍏煎锛歠ailed鈫掓湭鑳借幏鍙栵紱local 鏃犵姸鎬佹í骞呫€?... ok
+test_03b_v2_banner_contract (__main__.Reg.test_03b_v2_banner_contract)
+S3 钀藉湴 RUN_STATUS_V2 鍚庣敓鏁堬細v2 鏈疆鐘舵€併€乺un_id 涓嶇鏍囧巻鍙层€乴ocal 鎭掔┖銆?... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.372s
+
+OK

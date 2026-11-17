@@ -1,0 +1,18 @@
+.........................................F..............
+======================================================================
+FAIL: test_freeze_pins_nine_files (__main__.Q6.test_freeze_pins_nine_files)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\FluMonitor\.tmp_a4\reg\11-12-regional-monitor\validation\check_search_query.py", line 377, in test_freeze_pins_nine_files
+    self.assertEqual(self._sha(p), want, f"{name} 鍋忕鍐荤粨 r4 鍩虹嚎")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'f72ec16db39f9191fc00894ed73d367adc3dfdc08a1d0bfd6a586552bb7b8654' != '3851e1dcba1fa74c02c1c581bac659d00a723605de7d61b9951df7e4fa109597'
+- f72ec16db39f9191fc00894ed73d367adc3dfdc08a1d0bfd6a586552bb7b8654
++ 3851e1dcba1fa74c02c1c581bac659d00a723605de7d61b9951df7e4fa109597
+ : flu_north.csv 鍋忕鍐荤粨 r4 鍩虹嚎
+
+----------------------------------------------------------------------
+Ran 56 tests in 9.197s
+
+FAILED (failures=1)
+Q-SUITE FAIL 55/56

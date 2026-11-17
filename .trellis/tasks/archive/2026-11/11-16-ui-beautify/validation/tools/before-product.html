@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>成都 · 呼吸道防护参考</title>
+<style>
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#f5f6f8;color:#222}
+  .wrap{max-width:640px;margin:0 auto;padding:16px}
+  h1{font-size:20px;margin:16px 0 4px}
+  .sub{font-size:12px;color:#888;margin-bottom:12px}
+  .banner{background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:8px 12px;border-radius:8px;font-size:14px;margin-bottom:12px}
+  .card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .card h2{font-size:15px;margin:0 0 8px;color:#555}
+  .big{font-size:34px;font-weight:700}
+  .big.nodata{font-size:24px;color:#9ca3af;font-weight:400}
+  .unit{font-size:13px;color:#888;font-weight:400}
+  .kv{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px;font-size:14px}
+  .kv b{font-size:18px}
+  .meta{margin-top:10px;font-size:12px;color:#6b7280}
+  .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;background:#eef4ff;color:#3a6ea5;margin-right:6px;margin-bottom:2px;max-width:100%;box-sizing:border-box}
+  .adv{margin:8px 0 0;padding:0 0 0 18px;font-size:13px;color:#444;line-height:1.7}
+  .src{font-size:12px;color:#6b7280;margin-top:8px}
+  .rank{width:100%;border-collapse:collapse;font-size:14px}
+  .rank th,.rank td{padding:4px 6px;border-bottom:1px solid #eee;text-align:left}
+  .rank th{font-size:12px;color:#888;font-weight:400}
+  .rank .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .trendrow{display:flex;align-items:center;gap:8px;margin:6px 0}
+  .tlabel{width:72px;font-size:13px;color:#444;flex:none}
+  .childg{margin:8px 0;font-size:14px}
+  .childg b{display:inline-block;min-width:64px;color:#555;font-size:13px}
+  .chain{color:#222}
+  .nodata{color:#999;font-size:13px;padding:8px 0}
+  .foot{font-size:11px;color:#6b7280;margin:16px 0;line-height:1.6}
+  .hist-sub{font-size:12px;color:#888;margin:0 0 8px;line-height:1.6}
+  .hist-note{margin-top:6px;line-height:1.6}
+  .hist-notice{font-size:13px;color:#8a6d1f;background:#fff8e6;border-left:3px solid #e0b33c;padding:6px 10px;border-radius:4px;margin:8px 0}
+  .hist-scroll-hint{display:none;font-size:11px;color:#999;margin:6px 0 2px}
+  .hist-scroll{width:100%;max-width:100%;overflow-x:auto;outline:none}
+  .hist-scroll:focus-visible{box-shadow:0 0 0 2px #3a6ea5;border-radius:4px}
+  .hist-tbl{min-width:340px;width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
+  .hist-tbl caption{caption-side:top;text-align:left;font-size:11px;color:#888;padding:0 0 6px}
+  .hist-tbl th,.hist-tbl td{padding:5px 6px;border-bottom:1px solid #eee;text-align:left;white-space:nowrap;font-weight:400}
+  .hist-tbl thead th{font-size:11px;color:#888;border-bottom:1px solid #e5e7eb}
+  .hist-tbl tbody th{color:#333}
+  .hist-tbl td{font-variant-numeric:tabular-nums}
+  .hist-tbl .hist-g{font-weight:700;color:#222}
+  .hist-tbl .hist-na{color:#999}
+  .hist-tbl tbody tr.hist-cur{background:#f6f7f9}
+  .hist-yl{display:inline-flex;align-items:center;gap:5px}
+  .hist-sub2{display:block;font-size:11px;color:#999;font-weight:400;margin-top:1px}
+  .hist-tbl thead .hist-sub2{display:inline;margin-left:3px}
+  @media (max-width:420px){ .hist-scroll-hint{display:block} }
+  .search{margin:0 0 12px}
+  .search label{font-size:13px;color:#555;display:block;margin-bottom:6px}
+  #q{width:100%;box-sizing:border-box;font-size:16px;padding:10px 12px;border:1px solid #d5dade;border-radius:8px;background:#fff}
+  #q:focus-visible{outline:2px solid #3a6ea5;outline-offset:1px}
+  #q-list{list-style:none;margin:4px 0 0;padding:4px;background:#fff;border:1px solid #d5dade;border-radius:8px;max-height:260px;overflow:auto}
+  #q-list .q-item{padding:8px 10px;border-radius:6px;cursor:pointer;font-size:14px;min-height:44px;box-sizing:border-box}
+  #q-list .q-item[aria-selected="true"]{background:#1f2937;color:#fff}
+  #q-list .q-item .q-sub{font-size:11px;color:#999;margin-left:6px}
+  #q-list .q-item[aria-selected="true"] .q-sub{color:#ddd}
+  .q-status{font-size:12px;color:#6b7280;margin-top:6px;min-height:16px;line-height:1.6}
+  .q-row{display:flex;gap:8px;align-items:stretch}
+  .q-row #q{flex:1 1 auto;min-width:0}
+  #q[disabled]{background:#f0f2f4;color:#6b7280;cursor:not-allowed}
+  .q-btns{display:flex;gap:6px;flex:none}
+  .q-btn{min-height:44px;padding:0 12px;font-size:14px;border:1px solid #d5dade;border-radius:8px;background:#f5f7f9;color:#1f2937;cursor:pointer}
+  .q-btn:hover{background:#eef1f4}
+  .q-btn:focus-visible{outline:2px solid #3a6ea5;outline-offset:1px}
+  .q-btn[disabled]{opacity:.55;cursor:not-allowed}
+  .q-chip{font-size:12px;color:#6b7280;margin:6px 0 0}.q-chip.bad{color:#b91c1c}.q-chip.ok{color:#15803d}.q-ver{font-size:11px;color:#9ca3af;margin-top:4px;line-height:1.6}
+  /* 结果区标题可编程聚焦（tabindex=-1），不显示焦点框 */
+  #query-view h2:focus{outline:none}
+  #query-view h2:focus-visible{outline:2px solid #3a6ea5;outline-offset:1px}
+  @media (max-width:520px){ .q-row{display:block} .q-btns{margin-top:6px} .q-btn{flex:1} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>成都 · 呼吸道防护参考</h1>
+  <div class="sub">分块证据 · 各自口径 · 不合成总分</div>
+
+  <section class="search" aria-label="查询其他省市">
+    <label for="q">查询其他省市（本地目录 · 页面不联网）</label>
+    <div class="q-row">
+      <input id="q" type="text" role="combobox" aria-expanded="false"
+             aria-controls="q-list" aria-autocomplete="list" autocomplete="off"
+             placeholder="输入省市名称，如：哈尔滨 / 广东 / 重庆" disabled>
+      <div class="q-btns">
+        <button type="button" id="q-go" class="q-btn" disabled>查询</button>
+        <button type="button" id="q-clear" class="q-btn" disabled>清空</button>
+        <button type="button" id="q-home" class="q-btn" disabled>回成都</button>
+      </div>
+    </div>
+    <ul id="q-list" role="listbox" aria-label="候选地区" hidden></ul>
+    <div id="q-status" class="q-status" role="status" aria-live="polite">搜索组件加载中…若本提示未消失，说明内联脚本未完成初始化，搜索暂不可用；下方成都默认数据不受影响。</div>
+    <p class="q-ver">目录版本：民政部 2025 年末 + CC0 areacodes（含 dmfw 补录 1 条）</p>
+    <div id="query-view" hidden></div>
+    <noscript><div class="q-status">浏览器脚本不可用：仅显示成都默认内容；
+      查询功能需启用 JavaScript（数据已内嵌本页，不联网）。</div></noscript>
+  </section>
+<div id="default-view">
+  <div class="banner">ℹ 本地构建 · 未提供本次运行记录 · 页面按各源存量数据展示</div>
+  
+  <div class="card">
+    <h2>四川官方流感分级（月度 · 成都=平原区）</h2>
+    
+    <div class="big">IV 级 · 活跃期<span class="unit">（2026年10月）</span></div>
+    <div class="meta"><span class="tag">10月已确认等级 · 本月待更新</span><span class="tag">省级官方分级</span></div>
+    <ol class="adv"><li>（1）勤洗手，打喷嚏或咳嗽时用纸巾或袖子遮住口、鼻；</li><li>（2）避免带病上课上班；</li><li>（3）尽量避免接触流感样病例患者；如需接触应佩戴口罩；</li><li>（4）鼓励市民接种流感疫苗；</li><li>（5）加强学校托幼机构因病缺勤监测和晨午检。</li></ol>
+    <div class="src">防控建议为官方原文：四川省疾控"流感指数分级标准表" IV 级 · <a href="https://www.sccdc.cn/Article/View?id=39436" target="_blank">当期发布</a></div>
+  </div>
+  <div class="card">
+    <h2>南方片流感趋势（周度）</h2>
+    
+    <div class="big">82.34<span class="unit"> Goldstein 指数（相对强度）</span></div>
+    <div class="kv">
+      <span>ILI% <b>4.6%</b></span>
+      <span>流感阳性率 <b>17.90%</b></span>
+      <span>2026年第<b>45</b>周</span>
+    </div>
+    <div class="meta"><span class="tag">数据正常 · 2026年第45周 · 来源发布 2026-11-12</span><span class="tag">较上周 ↑</span></div>
+    <div class="src">来源：国家流感中心《中国流感监测周报》 <a href="https://www.chinacdc.cn/jksj/jksj04_14249/202611/t20261111_1842933.html" target="_blank" rel="noopener">当期文章</a></div>
+  </div>
+  <div class="card">
+    <h2>南方片流感指数 · 历年同周对比</h2>
+    <div class="hist-sub">南方片 · Goldstein 相对强度指数（ILI%×流感阳性率）· 2026、2025、2024、2023 年 · 按 ISO 周序号对齐</div><svg viewBox="0 0 280 192" style="display:block;width:100%;max-width:280px;height:auto" role="img" aria-labelledby="hist-title hist-desc" focusable="false"><title id="hist-title">南方片流感指数 · 历年同周对比</title><desc id="hist-desc">横轴为 ISO 周序号 1 至 53，纵轴为 Goldstein 相对强度指数，各年统一。第45周：2026年 82.34；2025年 123.25；2024年 15.70；2023年 147.68。本年曲线截至最新已收录周，往年为该年已收录周的曲线，均不是预测。</desc><rect x="232.5" y="16" width="37.5" height="150" fill="#f3f4f6"/><line x1="26" y1="128.5" x2="270" y2="128.5" stroke="#e5e7eb"/><line x1="26" y1="91.0" x2="270" y2="91.0" stroke="#e5e7eb"/><line x1="26" y1="53.5" x2="270" y2="53.5" stroke="#e5e7eb"/><line x1="87.0" y1="16" x2="87.0" y2="166" stroke="#eef0f2"/><line x1="148.0" y1="16" x2="148.0" y2="166" stroke="#eef0f2"/><line x1="209.0" y1="16" x2="209.0" y2="166" stroke="#eef0f2"/><line x1="26.0" y1="166" x2="26.0" y2="169" stroke="#9ca3af"/><line x1="87.0" y1="166" x2="87.0" y2="169" stroke="#9ca3af"/><line x1="148.0" y1="166" x2="148.0" y2="169" stroke="#9ca3af"/><line x1="209.0" y1="166" x2="209.0" y2="169" stroke="#9ca3af"/><line x1="270.0" y1="166" x2="270.0" y2="169" stroke="#9ca3af"/><line x1="26" y1="16" x2="26" y2="166" stroke="#d1d5db"/><line x1="26" y1="166" x2="270" y2="166" stroke="#9ca3af"/><line x1="232.5" y1="16" x2="232.5" y2="166" stroke="#9ca3af" stroke-dasharray="3 3"/><text x="228.5" y="12" font-size="12" text-anchor="end" fill="#4b5563">第45周</text><text x="23" y="170.0" font-size="12" text-anchor="end" fill="#6b7280">0</text><text x="23" y="132.5" font-size="12" text-anchor="end" fill="#6b7280">200</text><text x="23" y="95.0" font-size="12" text-anchor="end" fill="#6b7280">400</text><text x="23" y="57.5" font-size="12" text-anchor="end" fill="#6b7280">600</text><text x="23" y="20.0" font-size="12" text-anchor="end" fill="#6b7280">800</text><polyline fill="none" stroke="#6b7280" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1 4" points="26.0,165.0 30.7,165.0 35.4,165.0 40.1,165.0 44.8,165.0 49.5,165.0 54.2,164.3 58.8,153.0 63.5,118.4 68.2,73.5 72.9,67.9 77.6,53.8 82.3,54.2 87.0,70.4 91.7,100.7 96.4,122.8 101.1,139.4 105.8,149.2 110.5,156.3 115.2,161.3 119.8,164.1 124.5,165.0 129.2,165.0 133.9,165.0 138.6,165.0 143.3,165.0 148.0,165.0 152.7,165.0 157.4,164.6 162.1,164.3 166.8,164.2 171.5,163.0 176.2,163.1 180.8,162.4 185.5,163.0 190.2,162.0 194.9,161.3 199.6,158.8 204.3,157.5 209.0,156.1 213.7,156.1 218.4,150.2 223.1,146.9 227.8,141.9 232.5,138.3 237.2,124.6 241.8,99.6 246.5,84.3 251.2,73.6 255.9,76.9 260.6,80.8 265.3,68.4"/><polyline fill="none" stroke="#4f86b8" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="butt" stroke-dasharray="6 3" points="26.0,70.5 30.7,86.9 35.4,108.6 40.1,123.2 44.8,127.1 49.5,119.1 54.2,121.0 58.8,134.2 63.5,142.2 68.2,139.1 72.9,143.4 77.6,148.6 82.3,151.1 87.0,154.3 91.7,157.5 96.4,157.6 101.1,158.5 105.8,157.6 110.5,156.1 115.2,156.2 119.8,158.6 124.5,156.4 129.2,158.4 133.9,158.2 138.6,158.0 143.3,156.6 148.0,155.6 152.7,156.9 157.4,158.1 162.1,158.9 166.8,160.2 171.5,161.3 176.2,161.8 180.8,163.1 185.5,163.4 190.2,163.5 194.9,162.5 199.6,162.5 204.3,162.5 209.0,162.4 213.7,163.5 218.4,163.9 223.1,163.2 227.8,162.9 232.5,163.1 237.2,162.3 241.8,161.1 246.5,160.0 251.2,158.2 255.9,157.2 260.6,150.6 265.3,139.8"/><polyline fill="none" stroke="#1f4e79" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="butt" points="26.0,122.9 30.7,119.7 35.4,123.2 40.1,131.9 44.8,121.4 49.5,133.3 54.2,139.6 58.8,145.0 63.5,149.7 68.2,156.3 72.9,158.7 77.6,161.2 82.3,162.7 87.0,163.9 91.7,164.3 96.4,164.6 101.1,165.0 105.8,165.0 110.5,165.0 115.2,165.0 119.8,165.0 124.5,165.0 129.2,165.0 133.9,165.0 138.6,165.0 143.3,165.0 148.0,164.9 152.7,165.0 157.4,164.8 162.1,164.9 166.8,165.0 171.5,164.9 176.2,164.8 180.8,164.6 185.5,164.4 190.2,164.2 194.9,163.8 199.6,163.4 204.3,163.0 209.0,162.0 213.7,161.9 218.4,161.4 223.1,158.3 227.8,151.8 232.5,142.9 237.2,127.4 241.8,109.1 246.5,74.3 251.2,52.6 255.9,68.3 260.6,97.7 265.3,118.1"/><polyline fill="none" stroke="#c0392b" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="butt" points="26.0,129.7 30.7,138.7 35.4,141.7 40.1,146.5 44.8,151.5 49.5,156.7 54.2,158.6 58.8,156.6 63.5,160.3 68.2,161.3 72.9,161.0 77.6,159.3 82.3,159.0 87.0,157.8 91.7,158.1 96.4,158.6 101.1,157.8 105.8,157.5 110.5,158.3 115.2,157.6 119.8,156.5 124.5,155.6 129.2,154.1 133.9,155.3 138.6,154.7 143.3,153.3 148.0,150.9 152.7,148.1 157.4,146.1 162.1,145.4 166.8,146.7 171.5,148.3 176.2,148.9 180.8,150.6 185.5,149.3 190.2,146.6 194.9,142.2 199.6,145.3 204.3,147.3 209.0,149.0 213.7,149.3 218.4,149.5 223.1,150.8 227.8,150.6 232.5,150.6"/><polygon points="232.5,134.0 236.2,140.5 228.7,140.5" fill="#6b7280"/><polygon points="232.5,158.0 237.5,163.1 232.5,168.1 227.4,163.1" fill="#4f86b8"/><rect x="229.0" y="139.4" width="7" height="7" fill="#1f4e79"/><circle cx="232.5" cy="150.6" r="2.75" fill="#c0392b" stroke="#fff" stroke-width="1.5"/><text x="26.0" y="183" font-size="12" text-anchor="start" fill="#6b7280">1</text><text x="87.0" y="183" font-size="12" text-anchor="middle" fill="#6b7280">14</text><text x="148.0" y="183" font-size="12" text-anchor="middle" fill="#6b7280">27</text><text x="209.0" y="183" font-size="12" text-anchor="middle" fill="#6b7280">40</text><text x="270.0" y="183" font-size="12" text-anchor="end" fill="#6b7280">53</text></svg><div class="src hist-note">指数为相对强度（南方片哨点口径）· 历史年为该年已收录周的曲线，本年截至最新已收录周，不是预测；灰底为本年尚无观测的周次。</div><div class="src hist-note">横轴为 ISO 周序号 1–53，刻度约对应 1 月初、4 月初、7 月初、10 月初、年末；纵轴各年统一，低位波动请看下表。</div><div class="hist-scroll-hint">↔ 左右滑动查看完整对照</div><div class="hist-scroll" tabindex="0" role="region" aria-label="南方片历年同周对照表，可左右滑动查看"><table class="hist-tbl"><caption>2026年第45周与往年同周对照</caption><thead><tr><th scope="col">年份</th><th scope="col">ISO周起</th><th scope="col">指数<span class="hist-sub2">Goldstein</span></th><th scope="col">ILI%</th><th scope="col">阳性率%</th><th scope="col">来源</th></tr></thead><tbody><tr class="hist-cur"><th scope="row"><span class="hist-yl"><svg width="28" height="12" viewBox="0 0 28 12" aria-hidden="true" focusable="false"><line x1="1" y1="6" x2="27" y2="6" stroke="#c0392b" stroke-width="2.6" stroke-linecap="butt"/><circle cx="14.0" cy="6.0" r="2.75" fill="#c0392b" stroke="#fff" stroke-width="1.5"/></svg><span>2026</span></span><span class="hist-sub2">截至第45周</span><span class="hist-sub2">不是预测</span><span class="hist-sub2">已收录45周</span></th><td>11-02</td><td class="hist-g">82.34</td><td>4.6</td><td>17.90</td><td><a href="https://www.chinacdc.cn/jksj/jksj04_14249/202611/t20261111_1842933.html" target="_blank" rel="noopener" aria-label="2026年第45周周报原文">当期</a></td></tr><tr><th scope="row"><span class="hist-yl"><svg width="28" height="12" viewBox="0 0 28 12" aria-hidden="true" focusable="false"><line x1="1" y1="6" x2="27" y2="6" stroke="#1f4e79" stroke-width="1.6" stroke-linecap="butt"/><rect x="10.5" y="2.5" width="7" height="7" fill="#1f4e79"/></svg><span>2025</span></span><span class="hist-sub2">已收录52周</span></th><td>11-03</td><td class="hist-g">123.25</td><td>5.5</td><td>22.41</td><td><a href="https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202511/t20251113_313466.htm" target="_blank" rel="noopener" aria-label="2025年第45周周报原文">当期</a></td></tr><tr><th scope="row"><span class="hist-yl"><svg width="28" height="12" viewBox="0 0 28 12" aria-hidden="true" focusable="false"><line x1="1" y1="6" x2="27" y2="6" stroke="#4f86b8" stroke-width="1.6" stroke-linecap="butt" stroke-dasharray="6 3"/><polygon points="14.0,1.0 19.0,6.0 14.0,11.0 9.0,6.0" fill="#4f86b8"/></svg><span>2024</span></span><span class="hist-sub2">已收录52周</span></th><td>11-04</td><td class="hist-g">15.70</td><td>3.6</td><td>4.36</td><td><a href="https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202411/t20241115_302662.htm" target="_blank" rel="noopener" aria-label="2024年第45周周报原文">当期</a></td></tr><tr><th scope="row"><span class="hist-yl"><svg width="28" height="12" viewBox="0 0 28 12" aria-hidden="true" focusable="false"><line x1="1" y1="6" x2="27" y2="6" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 4"/><polygon points="14.0,1.7 17.8,8.2 10.2,8.2" fill="#6b7280"/></svg><span>2023</span></span><span class="hist-sub2">已收录52周</span></th><td>11-06</td><td class="hist-g">147.68</td><td>5.5</td><td>26.85</td><td><a href="https://ivdc.chinacdc.cn/cnic/zyzx/lgzb/202311/t20231118_270675.htm" target="_blank" rel="noopener" aria-label="2023年第45周周报原文">当期</a></td></tr></tbody></table></div><div class="src hist-note">最新已收录：2026年第45周（来源发布 2026-11-12） · 表中周起日按 ISO 周序对齐，逐年略有错位；灰底行为本年（截至第45周）</div><div class="src hist-note">来源：国家流感中心《中国流感监测周报》（南方片）· 图中共 201 周有效数据（2023年第1周–2026年第45周）· 指数为相对强度，非风险等级、感染概率或百分位。</div>
+  </div>
+  <div class="card">
+    <h2>全国多病原活跃度排行（周度）</h2>
+    <table class="rank"><tr><th>病原体</th><th>门急诊阳性率</th><th>较上周</th></tr><tr><td>流感病毒</td><td class="num">18.8%</td><td class="num">↑</td></tr><tr><td>鼻病毒</td><td class="num">10.9%</td><td class="num">↓</td></tr><tr><td>人偏肺病毒</td><td class="num">5.4%</td><td class="num">↑</td></tr><tr><td>副流感病毒</td><td class="num">4.2%</td><td class="num">↓</td></tr><tr><td>肠道病毒</td><td class="num">3.3%</td><td class="num">↓</td></tr><tr><td>博卡病毒</td><td class="num">2.6%</td><td class="num">↑</td></tr><tr><td>腺病毒</td><td class="num">1.9%</td><td class="num">↑</td></tr><tr><td>呼吸道合胞病毒</td><td class="num">1.2%</td><td class="num">→</td></tr><tr><td>普通冠状病毒</td><td class="num">1.1%</td><td class="num">↑</td></tr><tr><td>新型冠状病毒</td><td class="num">0.8%</td><td class="num">↓</td></tr><tr><td>肺炎支原体</td><td class="num">0.5%</td><td class="num">↑</td></tr></table><div class="meta"><span class="tag">数据正常 · 第45周 · 全国哨点口径</span></div><div class="src">按门急诊流感样病例阳性率降序 · 箭头为较上周方向（百分点变化见数据表）</div>
+  </div>
+  <div class="card">
+    <h2>流感 / 新冠 / RSV 趋势（周度 · 本年度）</h2>
+    <div class="trendrow"><span class="tlabel">流感病毒</span><svg viewBox="0 0 300 70" style="width:100%;max-width:300px" role="img"><polyline points="4.0,55.0 6.5,53.6 9.1,52.4 11.6,49.3 14.1,44.8 16.7,39.5 19.2,33.8 24.3,29.5 26.8,29.2 29.3,32.2 31.9,33.7 34.4,39.2 36.9,38.0 39.5,41.8 42.0,44.4 44.5,46.0 47.1,50.2 49.6,52.6 52.1,53.7 54.7,55.2 57.2,54.6 59.7,55.8 62.3,56.0 64.8,56.1 67.3,56.4 69.9,56.2 72.4,56.3 74.9,56.7 77.5,56.8 80.0,56.6 82.5,56.7 85.1,56.8 87.6,56.7 90.1,56.6 92.7,56.6 95.2,56.1 97.7,56.2 100.3,56.2 102.8,56.8 105.3,56.8 107.9,56.5 110.4,56.1 112.9,55.4 115.5,55.1 118.0,55.2 120.5,54.7 123.1,55.6 125.6,55.2 128.1,53.3 130.7,49.6 133.2,44.0 135.7,34.1 138.3,27.4 140.8,22.1 143.3,17.0 145.9,14.5 148.4,17.7 150.9,24.4 153.5,31.0 158.5,36.0 161.1,39.3 163.6,40.9 166.1,42.9 168.7,44.3 171.2,47.6 173.7,49.2 176.3,49.6 178.8,49.2 181.3,50.5 183.9,48.9 186.4,47.3 188.9,45.6 191.5,44.9 194.0,45.7 196.5,47.3 199.1,46.1 201.6,47.3 204.1,48.2 206.7,48.5 209.2,48.5 211.7,49.1 214.3,48.9 216.8,50.1 219.3,50.2 221.9,49.9 224.4,48.7 226.9,47.0 229.5,47.9 232.0,46.4 234.5,47.3 237.1,46.5 239.6,45.3 242.1,45.0 244.7,43.8 247.2,43.2 249.7,42.1 252.3,42.8 254.8,45.5 257.3,48.7 259.9,47.1 262.4,45.6 264.9,46.2 267.5,45.5 270.0,42.9" fill="none" stroke="#c0392b" stroke-width="1.6"/><circle cx="270.0" cy="42.9" r="2.6" fill="#c0392b"/><text x="275.0" y="46.9" font-size="11" fill="#c0392b">18.8%</text><text x="0" y="68" font-size="9" fill="#999">2024W46</text><text x="266" y="68" font-size="9" fill="#999">2026W45</text></svg></div><div class="trendrow"><span class="tlabel">新型冠状病毒</span><svg viewBox="0 0 300 70" style="width:100%;max-width:300px" role="img"><polyline points="4.0,55.3 6.5,54.8 9.1,54.6 11.6,54.3 14.1,54.6 16.7,55.2 19.2,55.3 24.3,55.3 26.8,55.7 29.3,55.0 31.9,55.3 34.4,54.3 36.9,53.7 39.5,54.1 42.0,54.1 44.5,53.4 47.1,50.9 49.6,49.5 52.1,47.7 54.7,45.2 57.2,44.7 59.7,42.4 62.3,38.3 64.8,34.2 67.3,29.3 69.9,23.6 72.4,21.4 74.9,14.5 77.5,15.8 80.0,22.0 82.5,27.7 85.1,30.7 87.6,33.2 90.1,36.9 92.7,34.2 95.2,33.2 97.7,34.0 100.3,33.9 102.8,38.8 105.3,36.9 107.9,39.4 110.4,42.9 112.9,45.9 115.5,45.9 118.0,48.6 120.5,51.6 123.1,52.3 125.6,53.9 128.1,54.8 130.7,55.3 133.2,55.5 135.7,56.0 138.3,57.1 140.8,56.9 143.3,56.9 145.9,57.5 148.4,57.1 150.9,56.8 153.5,56.8 158.5,56.0 161.1,56.0 163.6,56.4 166.1,55.3 168.7,53.9 171.2,54.1 173.7,55.0 176.3,55.7 178.8,53.9 181.3,53.4 183.9,53.9 186.4,53.2 188.9,53.7 191.5,54.5 194.0,54.8 196.5,55.7 199.1,55.7 201.6,55.3 204.1,55.5 206.7,55.0 209.2,55.3 211.7,54.3 214.3,51.6 216.8,48.9 219.3,46.1 221.9,44.9 224.4,41.0 226.9,36.9 229.5,29.1 232.0,22.0 234.5,18.4 237.1,20.6 239.6,20.4 242.1,23.4 244.7,30.0 247.2,33.2 249.7,35.8 252.3,41.5 254.8,45.2 257.3,49.3 259.9,52.0 262.4,52.9 264.9,54.6 267.5,55.7 270.0,56.6" fill="none" stroke="#7f8c8d" stroke-width="1.6"/><circle cx="270.0" cy="56.6" r="2.6" fill="#7f8c8d"/><text x="275.0" y="60.6" font-size="11" fill="#7f8c8d">0.8%</text><text x="0" y="68" font-size="9" fill="#999">2024W46</text><text x="266" y="68" font-size="9" fill="#999">2026W45</text></svg></div><div class="trendrow"><span class="tlabel">呼吸道合胞病毒</span><svg viewBox="0 0 300 70" style="width:100%;max-width:300px" role="img"><polyline points="4.0,49.6 6.5,48.7 9.1,48.2 11.6,47.8 14.1,45.1 16.7,47.8 19.2,46.5 24.3,45.1 26.8,45.1 29.3,42.5 31.9,42.9 34.4,46.0 36.9,46.9 39.5,47.4 42.0,46.9 44.5,44.2 47.1,42.0 49.6,39.4 52.1,38.9 54.7,34.5 57.2,41.1 59.7,41.1 62.3,41.1 64.8,43.4 67.3,45.1 69.9,44.2 72.4,46.5 74.9,49.1 77.5,48.7 80.0,48.7 82.5,48.7 85.1,45.1 87.6,44.7 90.1,43.4 92.7,43.4 95.2,38.9 97.7,42.9 100.3,41.1 102.8,40.7 105.3,42.0 107.9,43.8 110.4,41.6 112.9,42.5 115.5,33.2 118.0,31.8 120.5,24.3 123.1,32.7 125.6,28.3 128.1,33.2 130.7,26.9 133.2,28.7 135.7,30.9 138.3,35.8 140.8,38.9 143.3,42.5 145.9,40.3 148.4,36.3 150.9,30.9 153.5,26.1 158.5,19.0 161.1,14.5 163.6,16.7 166.1,21.2 168.7,23.0 171.2,19.8 173.7,22.5 176.3,22.5 178.8,28.7 181.3,27.8 183.9,32.3 186.4,38.5 188.9,40.7 191.5,40.3 194.0,46.5 196.5,46.5 199.1,47.8 201.6,50.5 204.1,49.1 206.7,52.7 209.2,53.1 211.7,53.1 214.3,52.7 216.8,53.6 219.3,52.7 221.9,52.2 224.4,54.5 226.9,53.6 229.5,54.5 232.0,53.1 234.5,53.1 237.1,53.6 239.6,54.0 242.1,52.2 244.7,51.8 247.2,51.8 249.7,51.8 252.3,49.1 254.8,50.9 257.3,50.9 259.9,52.2 262.4,53.1 264.9,53.6 267.5,53.6 270.0,52.7" fill="none" stroke="#8e44ad" stroke-width="1.6"/><circle cx="270.0" cy="52.7" r="2.6" fill="#8e44ad"/><text x="275.0" y="56.7" font-size="11" fill="#8e44ad">1.2%</text><text x="0" y="68" font-size="9" fill="#999">2024W46</text><text x="266" y="68" font-size="9" fill="#999">2026W45</text></svg></div><div class="src">本年度（含开办期以来）全国哨点门急诊阳性率逐周折线 · 缺周为断点不画 0 · X 轴为周次</div>
+  </div>
+  <div class="card">
+    <h2>儿童分龄高发前三（周度）</h2>
+    <div class="childg"><b>0～4岁</b><span class="chain">①鼻病毒 ＞ ②流感病毒 ＞ ③人偏肺病毒、副流感病毒</span></div><div class="childg"><b>5～14岁</b><span class="chain">①流感病毒 ＞ ②鼻病毒 ＞ ③人偏肺病毒</span></div><div class="meta"><span class="tag">数据正常 · 第45周 · 全国哨点门急诊</span><span class="tag">排序非数值</span></div><div class="src">来源：中疾控哨点监测周报表3 · "＞"为检出率位次 · 非成都口径</div>
+  </div>
+</div>
+<template id="tpl-local_hlj_flu">  <div class="card">
+    <h2>黑龙江流感指数（省级周报 · 周度）</h2>
+    
+    <div class="big">14.42<span class="unit"> Goldstein 指数（相对强度）</span></div>
+    <div class="kv">
+      <span>ILI% <b>3.01%</b></span>
+      <span>流感阳性率 <b>4.79%</b></span>
+      <span>2026年第<b>45</b>周</span>
+    </div>
+    <div class="meta"><span class="tag">数据正常 · 2026年第45周 · 来源发布 2026-11-10</span><span class="tag">较上周 · 上周数据缺失</span></div>
+    <div class="src">来源：黑龙江省疾病预防控制中心《黑龙江省流感监测周报》 <a href="https://www.hljcdc.org/pc/index.php?c=zixundetail&amp;a=index&amp;id=7267&amp;lid=120" target="_blank" rel="noopener">当期文章</a></div>
+  </div></template><template id="tpl-local_hlj_sent">  <div class="card">
+    <h2>黑龙江哨点监测 · 官方正文部分观测（周度）</h2>
+    <div class="childg"><b>门急诊</b><span class="chain">鼻病毒 8% · 人偏肺病毒 6.67% · 流感病毒 4%</span><span class="unit">（标本 150 份 / 共 222 份）</span></div><div class="childg"><b>住院</b><span class="chain">鼻病毒 13.89% · 博卡病毒 6.94% · 人偏肺病毒 5.56% · 流感病毒 5.56%</span><span class="unit">（标本 72 份 / 共 222 份）</span></div><div class="meta"><span class="tag">2026年第45周 · 官方正文部分观测</span><span class="tag">非完整病原表</span></div><div class="src">来源：黑龙江省疾病预防控制中心《急性呼吸道传染病哨点监测周报》<a href="https://www.hljcdc.org/pc/index.php?c=zixundetail&amp;a=index&amp;id=7266&amp;lid=120" target="_blank" rel="noopener">当期文章</a> · 官方正文只列部分病原，未提及不等于 0，本工具不补全。</div>
+  </div></template><template id="tpl-prov_hlj_flu">  <div class="card">
+    <h2>黑龙江流感指数 · 省级参考（非该市实测）</h2>
+    <div class="src">省级数据 · 非该市实测：</div>
+    <div class="big">14.42<span class="unit"> Goldstein 指数（相对强度）</span></div>
+    <div class="kv">
+      <span>ILI% <b>3.01%</b></span>
+      <span>流感阳性率 <b>4.79%</b></span>
+      <span>2026年第<b>45</b>周</span>
+    </div>
+    <div class="meta"><span class="tag">数据正常 · 2026年第45周 · 来源发布 2026-11-10</span><span class="tag">较上周 · 上周数据缺失</span></div>
+    <div class="src">来源：黑龙江省疾病预防控制中心《黑龙江省流感监测周报》 <a href="https://www.hljcdc.org/pc/index.php?c=zixundetail&amp;a=index&amp;id=7267&amp;lid=120" target="_blank" rel="noopener">当期文章</a></div>
+  </div></template><template id="tpl-prov_hlj_sent">  <div class="card">
+    <h2>黑龙江哨点监测 · 省级参考（非该市实测）</h2>
+    <div class="src">省级数据 · 非该市实测：</div><div class="childg"><b>门急诊</b><span class="chain">鼻病毒 8% · 人偏肺病毒 6.67% · 流感病毒 4%</span><span class="unit">（标本 150 份 / 共 222 份）</span></div><div class="childg"><b>住院</b><span class="chain">鼻病毒 13.89% · 博卡病毒 6.94% · 人偏肺病毒 5.56% · 流感病毒 5.56%</span><span class="unit">（标本 72 份 / 共 222 份）</span></div><div class="meta"><span class="tag">2026年第45周 · 官方正文部分观测</span><span class="tag">非完整病原表</span></div><div class="src">来源：黑龙江省疾病预防控制中心《急性呼吸道传染病哨点监测周报》<a href="https://www.hljcdc.org/pc/index.php?c=zixundetail&amp;a=index&amp;id=7266&amp;lid=120" target="_blank" rel="noopener">当期文章</a> · 官方正文只列部分病原，未提及不等于 0，本工具不补全。</div>
+  </div></template><template id="tpl-zone_flu_south">  <div class="card">
+    <h2>南方片流感趋势（周度）</h2>
+    
+    <div class="big">82.34<span class="unit"> Goldstein 指数（相对强度）</span></div>
+    <div class="kv">
+      <span>ILI% <b>4.6%</b></span>
+      <span>流感阳性率 <b>17.90%</b></span>
+      <span>2026年第<b>45</b>周</span>
+    </div>
+    <div class="meta"><span class="tag">数据正常 · 2026年第45周 · 来源发布 2026-11-12</span><span class="tag">较上周 ↑</span></div>
+    <div class="src">来源：国家流感中心《中国流感监测周报》 <a href="https://www.chinacdc.cn/jksj/jksj04_14249/202611/t20261111_1842933.html" target="_blank" rel="noopener">当期文章</a></div>
+  </div></template><template id="tpl-zone_flu_north">  <div class="card">
+    <h2>北方片流感趋势（周度）</h2>
+    
+    <div class="big">44.31<span class="unit"> Goldstein 指数（相对强度）</span></div>
+    <div class="kv">
+      <span>ILI% <b>3.8%</b></span>
+      <span>流感阳性率 <b>11.66%</b></span>
+      <span>2026年第<b>45</b>周</span>
+    </div>
+    <div class="meta"><span class="tag">数据正常 · 2026年第45周 · 来源发布 2026-11-12</span><span class="tag">较上周 ↑</span></div>
+    <div class="src">来源：国家流感中心《中国流感监测周报》（北方片） <a href="https://www.chinacdc.cn/jksj/jksj04_14249/202611/t20261111_1842933.html" target="_blank" rel="noopener">当期文章</a></div>
+  </div></template><template id="tpl-zone_names_south">  <div class="card">
+    <h2>南方片门急诊 / 住院前三名（周度）</h2>
+    <div class="meta"><span class="tag">南方片前三名 · 仅列名称，无百分比</span></div><div class="childg"><b>门急诊</b><span class="chain">流感病毒 ＞ 鼻病毒 ＞ 人偏肺病毒</span><span class="meta">2026年第45周</span> <a href="https://www.chinacdc.cn/jksj/jksj04_14275/202611/t20261112_1842956.html" target="_blank" rel="noopener">当期文章</a></div><div class="childg"><b>住院</b><span class="chain">鼻病毒 ＞ 流感病毒 ＞ 人偏肺病毒</span><span class="meta">2026年第45周</span> <a href="https://www.chinacdc.cn/jksj/jksj04_14275/202611/t20261112_1842956.html" target="_blank" rel="noopener">当期文章</a></div><div class="meta"><span class="tag">片区哨点 · 两组各自最新周</span><span class="tag">排序非数值</span></div><div class="src">来源：中国疾控中心《全国急性呼吸道传染病哨点监测情况》表2（南方片名称次序，各组链接为其当期文章） · "＞"为检出率位次，仅列名称。</div>
+  </div></template><template id="tpl-zone_names_north">  <div class="card">
+    <h2>北方片门急诊 / 住院前三名（周度）</h2>
+    <div class="meta"><span class="tag">北方片前三名 · 仅列名称，无百分比</span></div><div class="childg"><b>门急诊</b><span class="chain">流感病毒 ＞ 鼻病毒 ＞ 人偏肺病毒、副流感病毒</span><span class="meta">2026年第45周</span> <a href="https://www.chinacdc.cn/jksj/jksj04_14275/202611/t20261112_1842956.html" target="_blank" rel="noopener">当期文章</a></div><div class="childg"><b>住院</b><span class="chain">鼻病毒 ＞ 流感病毒 ＞ 人偏肺病毒</span><span class="meta">2026年第45周</span> <a href="https://www.chinacdc.cn/jksj/jksj04_14275/202611/t20261112_1842956.html" target="_blank" rel="noopener">当期文章</a></div><div class="meta"><span class="tag">片区哨点 · 两组各自最新周</span><span class="tag">排序非数值</span></div><div class="src">来源：中国疾控中心《全国急性呼吸道传染病哨点监测情况》表2（北方片名称次序，各组链接为其当期文章） · "＞"为检出率位次，仅列名称。</div>
+  </div></template><template id="tpl-national_rank">  <div class="card">
+    <h2>全国多病原活跃度排行（周度）</h2>
+    <table class="rank"><tr><th>病原体</th><th>门急诊阳性率</th><th>较上周</th></tr><tr><td>流感病毒</td><td class="num">18.8%</td><td class="num">↑</td></tr><tr><td>鼻病毒</td><td class="num">10.9%</td><td class="num">↓</td></tr><tr><td>人偏肺病毒</td><td class="num">5.4%</td><td class="num">↑</td></tr><tr><td>副流感病毒</td><td class="num">4.2%</td><td class="num">↓</td></tr><tr><td>肠道病毒</td><td class="num">3.3%</td><td class="num">↓</td></tr><tr><td>博卡病毒</td><td class="num">2.6%</td><td class="num">↑</td></tr><tr><td>腺病毒</td><td class="num">1.9%</td><td class="num">↑</td></tr><tr><td>呼吸道合胞病毒</td><td class="num">1.2%</td><td class="num">→</td></tr><tr><td>普通冠状病毒</td><td class="num">1.1%</td><td class="num">↑</td></tr><tr><td>新型冠状病毒</td><td class="num">0.8%</td><td class="num">↓</td></tr><tr><td>肺炎支原体</td><td class="num">0.5%</td><td class="num">↑</td></tr></table><div class="meta"><span class="tag">数据正常 · 第45周 · 全国哨点口径</span></div><div class="src">按门急诊流感样病例阳性率降序 · 箭头为较上周方向（百分点变化见数据表）</div>
+  </div></template><template id="tpl-cq_links">  <div class="card">
+    <h2>重庆 · 官方入口</h2>
+    <div class="meta"><span class="tag">官方来源已核实 · 本工具未转成数值</span></div><div class="kv"><span>重庆市疾控中心 · 流感/呼吸道传染病信息列表</span></div><div class="src">请前往官方页面查看：<a href="https://www.cqcdc.org/index.php?a=lists&amp;catid=209" target="_blank" rel="noopener">重庆市疾控中心</a> · 官方声明未经许可不得复制发布，本工具只提供入口，不转载正文、数值或图片。</div>
+  </div></template><template id="tpl-local_nodata">  <div class="card">
+    <h2>当地监测数据</h2>
+    <div class="big nodata">—</div><div class="meta"><span class="tag">本工具未取得该地区官方监测数据</span></div><div class="src">目录覆盖不等于数据覆盖；下方省级 / 片区 / 全国块为参考，非当地实测。</div>
+  </div></template><template id="tpl-prov_nodata">  <div class="card">
+    <h2>省级参考</h2>
+    <div class="big nodata">—</div><div class="meta"><span class="tag">本工具未取得该省省级监测数据</span></div>
+  </div></template>
+  <div class="foot">
+    口径说明：四川分级为省疾控平原区（月度）；流感指数为南方片哨点（周度）；多病原排行/趋势/儿童卡均为全国哨点口径（非成都实测）。
+    查询结果中：黑龙江为省级官方周报口径；重庆仅官方入口；其余省市无当地数据时只展示省级/片区/全国参考，均明确标注，不冒充当地实测。
+    本工具不合成综合风险总分，各块独立标注口径；排序为名称非数值；箭头仅表较上周方向；Goldstein 指数为相对强度指数（ILI%×阳性率），非人群感染率。
+    据中疾控《版权与免责声明》注明：稿件来源：中国疾病预防控制中心；WHO FluNet 数据为国家层面公开数据。
+
+    页面生成时间：2026-11-16 · 数据以官方发布为准。
+  </div>
+</div>
+<script type="application/json" id="catalog-data">[{"i":"110000","n":"北京市","t":"province","p":"","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"120000","n":"天津市","t":"province","p":"","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"130000","n":"河北省","t":"province","p":"","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"130100","n":"石家庄市","t":"prefecture","p":"130000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"130200","n":"唐山市","t":"prefecture","p":"130000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"130300","n":"秦皇岛市","t":"prefecture","p":"130000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"130400","n":"邯郸市","t":"prefecture","p":"130000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"130500","n":"邢台市","t":"prefecture","p":"130000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"130600","n":"保定市","t":"prefecture","p":"130000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"130700","n":"张家口市","t":"prefecture","p":"130000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"130800","n":"承德市","t":"prefecture","p":"130000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"130900","n":"沧州市","t":"prefecture","p":"130000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"131000","n":"廊坊市","t":"prefecture","p":"130000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"131100","n":"衡水市","t":"prefecture","p":"130000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"140000","n":"山西省","t":"province","p":"","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"140100","n":"太原市","t":"prefecture","p":"140000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"140200","n":"大同市","t":"prefecture","p":"140000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"140300","n":"阳泉市","t":"prefecture","p":"140000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"140400","n":"长治市","t":"prefecture","p":"140000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"140500","n":"晋城市","t":"prefecture","p":"140000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"140600","n":"朔州市","t":"prefecture","p":"140000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"140700","n":"晋中市","t":"prefecture","p":"140000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"140800","n":"运城市","t":"prefecture","p":"140000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"140900","n":"忻州市","t":"prefecture","p":"140000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"141000","n":"临汾市","t":"prefecture","p":"140000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"141100","n":"吕梁市","t":"prefecture","p":"140000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"150000","n":"内蒙古自治区","t":"province","p":"","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"150100","n":"呼和浩特市","t":"prefecture","p":"150000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"150200","n":"包头市","t":"prefecture","p":"150000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"150300","n":"乌海市","t":"prefecture","p":"150000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"150400","n":"赤峰市","t":"prefecture","p":"150000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"150500","n":"通辽市","t":"prefecture","p":"150000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"150600","n":"鄂尔多斯市","t":"prefecture","p":"150000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"150700","n":"呼伦贝尔市","t":"prefecture","p":"150000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"150800","n":"巴彦淖尔市","t":"prefecture","p":"150000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"150900","n":"乌兰察布市","t":"prefecture","p":"150000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"152200","n":"兴安盟","t":"prefecture","p":"150000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"152500","n":"锡林郭勒盟","t":"prefecture","p":"150000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"152900","n":"阿拉善盟","t":"prefecture","p":"150000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"210000","n":"辽宁省","t":"province","p":"","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"210100","n":"沈阳市","t":"prefecture","p":"210000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"210200","n":"大连市","t":"prefecture","p":"210000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"210300","n":"鞍山市","t":"prefecture","p":"210000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"210400","n":"抚顺市","t":"prefecture","p":"210000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"210500","n":"本溪市","t":"prefecture","p":"210000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"210600","n":"丹东市","t":"prefecture","p":"210000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"210700","n":"锦州市","t":"prefecture","p":"210000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"210800","n":"营口市","t":"prefecture","p":"210000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"210900","n":"阜新市","t":"prefecture","p":"210000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"211000","n":"辽阳市","t":"prefecture","p":"210000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"211100","n":"盘锦市","t":"prefecture","p":"210000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"211200","n":"铁岭市","t":"prefecture","p":"210000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"211300","n":"朝阳市","t":"prefecture","p":"210000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"211400","n":"葫芦岛市","t":"prefecture","p":"210000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"220000","n":"吉林省","t":"province","p":"","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"220100","n":"长春市","t":"prefecture","p":"220000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"220200","n":"吉林市","t":"prefecture","p":"220000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"220300","n":"四平市","t":"prefecture","p":"220000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"220400","n":"辽源市","t":"prefecture","p":"220000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"220500","n":"通化市","t":"prefecture","p":"220000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"220600","n":"白山市","t":"prefecture","p":"220000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"220700","n":"松原市","t":"prefecture","p":"220000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"220800","n":"白城市","t":"prefecture","p":"220000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"222400","n":"延边朝鲜族自治州","t":"prefecture","p":"220000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"230000","n":"黑龙江省","t":"province","p":"","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"230100","n":"哈尔滨市","t":"prefecture","p":"230000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"230200","n":"齐齐哈尔市","t":"prefecture","p":"230000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"230300","n":"鸡西市","t":"prefecture","p":"230000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"230400","n":"鹤岗市","t":"prefecture","p":"230000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"230500","n":"双鸭山市","t":"prefecture","p":"230000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"230600","n":"大庆市","t":"prefecture","p":"230000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"230700","n":"伊春市","t":"prefecture","p":"230000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"230800","n":"佳木斯市","t":"prefecture","p":"230000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"230900","n":"七台河市","t":"prefecture","p":"230000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"231000","n":"牡丹江市","t":"prefecture","p":"230000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"231100","n":"黑河市","t":"prefecture","p":"230000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"231200","n":"绥化市","t":"prefecture","p":"230000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"232700","n":"大兴安岭地区","t":"prefecture","p":"230000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"310000","n":"上海市","t":"province","p":"","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"320000","n":"江苏省","t":"province","p":"","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"320100","n":"南京市","t":"prefecture","p":"320000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"320200","n":"无锡市","t":"prefecture","p":"320000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"320300","n":"徐州市","t":"prefecture","p":"320000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"320400","n":"常州市","t":"prefecture","p":"320000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"320500","n":"苏州市","t":"prefecture","p":"320000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"320600","n":"南通市","t":"prefecture","p":"320000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"320700","n":"连云港市","t":"prefecture","p":"320000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"320800","n":"淮安市","t":"prefecture","p":"320000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"320900","n":"盐城市","t":"prefecture","p":"320000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"321000","n":"扬州市","t":"prefecture","p":"320000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"321100","n":"镇江市","t":"prefecture","p":"320000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"321200","n":"泰州市","t":"prefecture","p":"320000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"321300","n":"宿迁市","t":"prefecture","p":"320000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"330000","n":"浙江省","t":"province","p":"","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"330100","n":"杭州市","t":"prefecture","p":"330000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"330200","n":"宁波市","t":"prefecture","p":"330000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"330300","n":"温州市","t":"prefecture","p":"330000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"330400","n":"嘉兴市","t":"prefecture","p":"330000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"330500","n":"湖州市","t":"prefecture","p":"330000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"330600","n":"绍兴市","t":"prefecture","p":"330000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"330700","n":"金华市","t":"prefecture","p":"330000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"330800","n":"衢州市","t":"prefecture","p":"330000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"330900","n":"舟山市","t":"prefecture","p":"330000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"331000","n":"台州市","t":"prefecture","p":"330000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"331100","n":"丽水市","t":"prefecture","p":"330000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"340000","n":"安徽省","t":"province","p":"","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"340100","n":"合肥市","t":"prefecture","p":"340000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"340200","n":"芜湖市","t":"prefecture","p":"340000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"340300","n":"蚌埠市","t":"prefecture","p":"340000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"340400","n":"淮南市","t":"prefecture","p":"340000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"340500","n":"马鞍山市","t":"prefecture","p":"340000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"340600","n":"淮北市","t":"prefecture","p":"340000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"340700","n":"铜陵市","t":"prefecture","p":"340000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"340800","n":"安庆市","t":"prefecture","p":"340000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"341000","n":"黄山市","t":"prefecture","p":"340000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"341100","n":"滁州市","t":"prefecture","p":"340000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"341200","n":"阜阳市","t":"prefecture","p":"340000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"341300","n":"宿州市","t":"prefecture","p":"340000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"341500","n":"六安市","t":"prefecture","p":"340000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"341600","n":"亳州市","t":"prefecture","p":"340000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"341700","n":"池州市","t":"prefecture","p":"340000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"341800","n":"宣城市","t":"prefecture","p":"340000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"350000","n":"福建省","t":"province","p":"","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"350100","n":"福州市","t":"prefecture","p":"350000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"350200","n":"厦门市","t":"prefecture","p":"350000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"350300","n":"莆田市","t":"prefecture","p":"350000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"350400","n":"三明市","t":"prefecture","p":"350000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"350500","n":"泉州市","t":"prefecture","p":"350000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"350600","n":"漳州市","t":"prefecture","p":"350000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"350700","n":"南平市","t":"prefecture","p":"350000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"350800","n":"龙岩市","t":"prefecture","p":"350000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"350900","n":"宁德市","t":"prefecture","p":"350000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"360000","n":"江西省","t":"province","p":"","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"360100","n":"南昌市","t":"prefecture","p":"360000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"360200","n":"景德镇市","t":"prefecture","p":"360000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"360300","n":"萍乡市","t":"prefecture","p":"360000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"360400","n":"九江市","t":"prefecture","p":"360000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"360500","n":"新余市","t":"prefecture","p":"360000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"360600","n":"鹰潭市","t":"prefecture","p":"360000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"360700","n":"赣州市","t":"prefecture","p":"360000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"360800","n":"吉安市","t":"prefecture","p":"360000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"360900","n":"宜春市","t":"prefecture","p":"360000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"361000","n":"抚州市","t":"prefecture","p":"360000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"361100","n":"上饶市","t":"prefecture","p":"360000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"370000","n":"山东省","t":"province","p":"","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"370100","n":"济南市","t":"prefecture","p":"370000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"370200","n":"青岛市","t":"prefecture","p":"370000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"370300","n":"淄博市","t":"prefecture","p":"370000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"370400","n":"枣庄市","t":"prefecture","p":"370000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"370500","n":"东营市","t":"prefecture","p":"370000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"370600","n":"烟台市","t":"prefecture","p":"370000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"370700","n":"潍坊市","t":"prefecture","p":"370000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"370800","n":"济宁市","t":"prefecture","p":"370000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"370900","n":"泰安市","t":"prefecture","p":"370000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"371000","n":"威海市","t":"prefecture","p":"370000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"371100","n":"日照市","t":"prefecture","p":"370000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"371300","n":"临沂市","t":"prefecture","p":"370000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"371400","n":"德州市","t":"prefecture","p":"370000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"371500","n":"聊城市","t":"prefecture","p":"370000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"371600","n":"滨州市","t":"prefecture","p":"370000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"371700","n":"菏泽市","t":"prefecture","p":"370000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"410000","n":"河南省","t":"province","p":"","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"410100","n":"郑州市","t":"prefecture","p":"410000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"410200","n":"开封市","t":"prefecture","p":"410000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"410300","n":"洛阳市","t":"prefecture","p":"410000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"410400","n":"平顶山市","t":"prefecture","p":"410000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"410500","n":"安阳市","t":"prefecture","p":"410000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"410600","n":"鹤壁市","t":"prefecture","p":"410000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"410700","n":"新乡市","t":"prefecture","p":"410000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"410800","n":"焦作市","t":"prefecture","p":"410000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"410900","n":"濮阳市","t":"prefecture","p":"410000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"411000","n":"许昌市","t":"prefecture","p":"410000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"411100","n":"漯河市","t":"prefecture","p":"410000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"411200","n":"三门峡市","t":"prefecture","p":"410000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"411300","n":"南阳市","t":"prefecture","p":"410000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"411400","n":"商丘市","t":"prefecture","p":"410000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"411500","n":"信阳市","t":"prefecture","p":"410000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"411600","n":"周口市","t":"prefecture","p":"410000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"411700","n":"驻马店市","t":"prefecture","p":"410000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"419001","n":"济源市","t":"province_direct_county","p":"410000","d":1,"a":[],"q":1,"f":"north","s":"north"},{"i":"420000","n":"湖北省","t":"province","p":"","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"420100","n":"武汉市","t":"prefecture","p":"420000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"420200","n":"黄石市","t":"prefecture","p":"420000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"420300","n":"十堰市","t":"prefecture","p":"420000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"420500","n":"宜昌市","t":"prefecture","p":"420000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"420600","n":"襄阳市","t":"prefecture","p":"420000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"420700","n":"鄂州市","t":"prefecture","p":"420000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"420800","n":"荆门市","t":"prefecture","p":"420000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"420900","n":"孝感市","t":"prefecture","p":"420000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"421000","n":"荆州市","t":"prefecture","p":"420000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"421100","n":"黄冈市","t":"prefecture","p":"420000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"421200","n":"咸宁市","t":"prefecture","p":"420000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"421300","n":"随州市","t":"prefecture","p":"420000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"422800","n":"恩施土家族苗族自治州","t":"prefecture","p":"420000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"429004","n":"仙桃市","t":"province_direct_county","p":"420000","d":1,"a":[],"q":1,"f":"south","s":"south"},{"i":"429005","n":"潜江市","t":"province_direct_county","p":"420000","d":1,"a":[],"q":1,"f":"south","s":"south"},{"i":"429006","n":"天门市","t":"province_direct_county","p":"420000","d":1,"a":[],"q":1,"f":"south","s":"south"},{"i":"429021","n":"神农架林区","t":"province_direct_county","p":"420000","d":1,"a":[],"q":1,"f":"south","s":"south"},{"i":"430000","n":"湖南省","t":"province","p":"","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"430100","n":"长沙市","t":"prefecture","p":"430000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"430200","n":"株洲市","t":"prefecture","p":"430000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"430300","n":"湘潭市","t":"prefecture","p":"430000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"430400","n":"衡阳市","t":"prefecture","p":"430000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"430500","n":"邵阳市","t":"prefecture","p":"430000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"430600","n":"岳阳市","t":"prefecture","p":"430000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"430700","n":"常德市","t":"prefecture","p":"430000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"430800","n":"张家界市","t":"prefecture","p":"430000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"430900","n":"益阳市","t":"prefecture","p":"430000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"431000","n":"郴州市","t":"prefecture","p":"430000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"431100","n":"永州市","t":"prefecture","p":"430000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"431200","n":"怀化市","t":"prefecture","p":"430000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"431300","n":"娄底市","t":"prefecture","p":"430000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"433100","n":"湘西土家族苗族自治州","t":"prefecture","p":"430000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"440000","n":"广东省","t":"province","p":"","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"440100","n":"广州市","t":"prefecture","p":"440000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"440200","n":"韶关市","t":"prefecture","p":"440000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"440300","n":"深圳市","t":"prefecture","p":"440000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"440400","n":"珠海市","t":"prefecture","p":"440000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"440500","n":"汕头市","t":"prefecture","p":"440000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"440600","n":"佛山市","t":"prefecture","p":"440000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"440700","n":"江门市","t":"prefecture","p":"440000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"440800","n":"湛江市","t":"prefecture","p":"440000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"440900","n":"茂名市","t":"prefecture","p":"440000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"441200","n":"肇庆市","t":"prefecture","p":"440000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"441300","n":"惠州市","t":"prefecture","p":"440000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"441400","n":"梅州市","t":"prefecture","p":"440000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"441500","n":"汕尾市","t":"prefecture","p":"440000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"441600","n":"河源市","t":"prefecture","p":"440000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"441700","n":"阳江市","t":"prefecture","p":"440000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"441800","n":"清远市","t":"prefecture","p":"440000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"441900","n":"东莞市","t":"prefecture","p":"440000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"442000","n":"中山市","t":"prefecture","p":"440000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"445100","n":"潮州市","t":"prefecture","p":"440000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"445200","n":"揭阳市","t":"prefecture","p":"440000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"445300","n":"云浮市","t":"prefecture","p":"440000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"450000","n":"广西壮族自治区","t":"province","p":"","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"450100","n":"南宁市","t":"prefecture","p":"450000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"450200","n":"柳州市","t":"prefecture","p":"450000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"450300","n":"桂林市","t":"prefecture","p":"450000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"450400","n":"梧州市","t":"prefecture","p":"450000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"450500","n":"北海市","t":"prefecture","p":"450000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"450600","n":"防城港市","t":"prefecture","p":"450000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"450700","n":"钦州市","t":"prefecture","p":"450000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"450800","n":"贵港市","t":"prefecture","p":"450000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"450900","n":"玉林市","t":"prefecture","p":"450000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"451000","n":"百色市","t":"prefecture","p":"450000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"451100","n":"贺州市","t":"prefecture","p":"450000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"451200","n":"河池市","t":"prefecture","p":"450000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"451300","n":"来宾市","t":"prefecture","p":"450000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"451400","n":"崇左市","t":"prefecture","p":"450000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"460000","n":"海南省","t":"province","p":"","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"460100","n":"海口市","t":"prefecture","p":"460000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"460200","n":"三亚市","t":"prefecture","p":"460000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"460300","n":"三沙市","t":"prefecture","p":"460000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"460400","n":"儋州市","t":"prefecture","p":"460000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"469001","n":"五指山市","t":"province_direct_county","p":"460000","d":1,"a":[],"q":1,"f":"south","s":"south"},{"i":"469002","n":"琼海市","t":"province_direct_county","p":"460000","d":1,"a":[],"q":1,"f":"south","s":"south"},{"i":"469005","n":"文昌市","t":"province_direct_county","p":"460000","d":1,"a":[],"q":1,"f":"south","s":"south"},{"i":"469006","n":"万宁市","t":"province_direct_county","p":"460000","d":1,"a":[],"q":1,"f":"south","s":"south"},{"i":"469007","n":"东方市","t":"province_direct_county","p":"460000","d":1,"a":[],"q":1,"f":"south","s":"south"},{"i":"469021","n":"定安县","t":"province_direct_county","p":"460000","d":1,"a":[],"q":1,"f":"south","s":"south"},{"i":"469022","n":"屯昌县","t":"province_direct_county","p":"460000","d":1,"a":[],"q":1,"f":"south","s":"south"},{"i":"469023","n":"澄迈县","t":"province_direct_county","p":"460000","d":1,"a":[],"q":1,"f":"south","s":"south"},{"i":"469024","n":"临高县","t":"province_direct_county","p":"460000","d":1,"a":[],"q":1,"f":"south","s":"south"},{"i":"469025","n":"白沙黎族自治县","t":"province_direct_county","p":"460000","d":1,"a":[],"q":1,"f":"south","s":"south"},{"i":"469026","n":"昌江黎族自治县","t":"province_direct_county","p":"460000","d":1,"a":[],"q":1,"f":"south","s":"south"},{"i":"469027","n":"乐东黎族自治县","t":"province_direct_county","p":"460000","d":1,"a":[],"q":1,"f":"south","s":"south"},{"i":"469028","n":"陵水黎族自治县","t":"province_direct_county","p":"460000","d":1,"a":[],"q":1,"f":"south","s":"south"},{"i":"469029","n":"保亭黎族苗族自治县","t":"province_direct_county","p":"460000","d":1,"a":[],"q":1,"f":"south","s":"south"},{"i":"469030","n":"琼中黎族苗族自治县","t":"province_direct_county","p":"460000","d":1,"a":[],"q":1,"f":"south","s":"south"},{"i":"500000","n":"重庆市","t":"province","p":"","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"510000","n":"四川省","t":"province","p":"","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"510100","n":"成都市","t":"prefecture","p":"510000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"510300","n":"自贡市","t":"prefecture","p":"510000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"510400","n":"攀枝花市","t":"prefecture","p":"510000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"510500","n":"泸州市","t":"prefecture","p":"510000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"510600","n":"德阳市","t":"prefecture","p":"510000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"510700","n":"绵阳市","t":"prefecture","p":"510000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"510800","n":"广元市","t":"prefecture","p":"510000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"510900","n":"遂宁市","t":"prefecture","p":"510000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"511000","n":"内江市","t":"prefecture","p":"510000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"511100","n":"乐山市","t":"prefecture","p":"510000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"511300","n":"南充市","t":"prefecture","p":"510000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"511400","n":"眉山市","t":"prefecture","p":"510000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"511500","n":"宜宾市","t":"prefecture","p":"510000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"511600","n":"广安市","t":"prefecture","p":"510000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"511700","n":"达州市","t":"prefecture","p":"510000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"511800","n":"雅安市","t":"prefecture","p":"510000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"511900","n":"巴中市","t":"prefecture","p":"510000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"512000","n":"资阳市","t":"prefecture","p":"510000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"513200","n":"阿坝藏族羌族自治州","t":"prefecture","p":"510000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"513300","n":"甘孜藏族自治州","t":"prefecture","p":"510000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"513400","n":"凉山彝族自治州","t":"prefecture","p":"510000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"520000","n":"贵州省","t":"province","p":"","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"520100","n":"贵阳市","t":"prefecture","p":"520000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"520200","n":"六盘水市","t":"prefecture","p":"520000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"520300","n":"遵义市","t":"prefecture","p":"520000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"520400","n":"安顺市","t":"prefecture","p":"520000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"520500","n":"毕节市","t":"prefecture","p":"520000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"520600","n":"铜仁市","t":"prefecture","p":"520000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"522300","n":"黔西南布依族苗族自治州","t":"prefecture","p":"520000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"522600","n":"黔东南苗族侗族自治州","t":"prefecture","p":"520000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"522700","n":"黔南布依族苗族自治州","t":"prefecture","p":"520000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"530000","n":"云南省","t":"province","p":"","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"530100","n":"昆明市","t":"prefecture","p":"530000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"530300","n":"曲靖市","t":"prefecture","p":"530000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"530400","n":"玉溪市","t":"prefecture","p":"530000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"530500","n":"保山市","t":"prefecture","p":"530000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"530600","n":"昭通市","t":"prefecture","p":"530000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"530700","n":"丽江市","t":"prefecture","p":"530000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"530800","n":"普洱市","t":"prefecture","p":"530000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"530900","n":"临沧市","t":"prefecture","p":"530000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"532300","n":"楚雄彝族自治州","t":"prefecture","p":"530000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"532500","n":"红河哈尼族彝族自治州","t":"prefecture","p":"530000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"532600","n":"文山壮族苗族自治州","t":"prefecture","p":"530000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"532800","n":"西双版纳傣族自治州","t":"prefecture","p":"530000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"532900","n":"大理白族自治州","t":"prefecture","p":"530000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"533100","n":"德宏傣族景颇族自治州","t":"prefecture","p":"530000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"533300","n":"怒江傈僳族自治州","t":"prefecture","p":"530000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"533400","n":"迪庆藏族自治州","t":"prefecture","p":"530000","d":0,"a":[],"q":1,"f":"south","s":"south"},{"i":"540000","n":"西藏自治区","t":"province","p":"","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"540100","n":"拉萨市","t":"prefecture","p":"540000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"540200","n":"日喀则市","t":"prefecture","p":"540000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"540300","n":"昌都市","t":"prefecture","p":"540000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"540400","n":"林芝市","t":"prefecture","p":"540000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"540500","n":"山南市","t":"prefecture","p":"540000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"540600","n":"那曲市","t":"prefecture","p":"540000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"542500","n":"阿里地区","t":"prefecture","p":"540000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"610000","n":"陕西省","t":"province","p":"","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"610100","n":"西安市","t":"prefecture","p":"610000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"610200","n":"铜川市","t":"prefecture","p":"610000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"610300","n":"宝鸡市","t":"prefecture","p":"610000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"610400","n":"咸阳市","t":"prefecture","p":"610000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"610500","n":"渭南市","t":"prefecture","p":"610000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"610600","n":"延安市","t":"prefecture","p":"610000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"610700","n":"汉中市","t":"prefecture","p":"610000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"610800","n":"榆林市","t":"prefecture","p":"610000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"610900","n":"安康市","t":"prefecture","p":"610000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"611000","n":"商洛市","t":"prefecture","p":"610000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"620000","n":"甘肃省","t":"province","p":"","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"620100","n":"兰州市","t":"prefecture","p":"620000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"620200","n":"嘉峪关市","t":"prefecture","p":"620000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"620300","n":"金昌市","t":"prefecture","p":"620000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"620400","n":"白银市","t":"prefecture","p":"620000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"620500","n":"天水市","t":"prefecture","p":"620000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"620600","n":"武威市","t":"prefecture","p":"620000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"620700","n":"张掖市","t":"prefecture","p":"620000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"620800","n":"平凉市","t":"prefecture","p":"620000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"620900","n":"酒泉市","t":"prefecture","p":"620000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"621000","n":"庆阳市","t":"prefecture","p":"620000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"621100","n":"定西市","t":"prefecture","p":"620000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"621200","n":"陇南市","t":"prefecture","p":"620000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"622900","n":"临夏回族自治州","t":"prefecture","p":"620000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"623000","n":"甘南藏族自治州","t":"prefecture","p":"620000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"630000","n":"青海省","t":"province","p":"","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"630100","n":"西宁市","t":"prefecture","p":"630000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"630200","n":"海东市","t":"prefecture","p":"630000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"632200","n":"海北藏族自治州","t":"prefecture","p":"630000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"632300","n":"黄南藏族自治州","t":"prefecture","p":"630000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"632500","n":"海南藏族自治州","t":"prefecture","p":"630000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"632600","n":"果洛藏族自治州","t":"prefecture","p":"630000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"632700","n":"玉树藏族自治州","t":"prefecture","p":"630000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"632800","n":"海西蒙古族藏族自治州","t":"prefecture","p":"630000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"640000","n":"宁夏回族自治区","t":"province","p":"","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"640100","n":"银川市","t":"prefecture","p":"640000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"640200","n":"石嘴山市","t":"prefecture","p":"640000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"640300","n":"吴忠市","t":"prefecture","p":"640000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"640400","n":"固原市","t":"prefecture","p":"640000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"640500","n":"中卫市","t":"prefecture","p":"640000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"650000","n":"新疆维吾尔自治区","t":"province","p":"","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"650100","n":"乌鲁木齐市","t":"prefecture","p":"650000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"650200","n":"克拉玛依市","t":"prefecture","p":"650000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"650400","n":"吐鲁番市","t":"prefecture","p":"650000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"650500","n":"哈密市","t":"prefecture","p":"650000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"652300","n":"昌吉回族自治州","t":"prefecture","p":"650000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"652700","n":"博尔塔拉蒙古自治州","t":"prefecture","p":"650000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"652800","n":"巴音郭楞蒙古自治州","t":"prefecture","p":"650000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"652900","n":"阿克苏地区","t":"prefecture","p":"650000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"653000","n":"克孜勒苏柯尔克孜自治州","t":"prefecture","p":"650000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"653100","n":"喀什地区","t":"prefecture","p":"650000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"653200","n":"和田地区","t":"prefecture","p":"650000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"654000","n":"伊犁哈萨克自治州","t":"prefecture","p":"650000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"654200","n":"塔城地区","t":"prefecture","p":"650000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"654300","n":"阿勒泰地区","t":"prefecture","p":"650000","d":0,"a":[],"q":1,"f":"north","s":"north"},{"i":"659001","n":"石河子市","t":"province_direct_county","p":"650000","d":1,"a":[],"q":1,"f":"north","s":"north"},{"i":"659002","n":"阿拉尔市","t":"province_direct_county","p":"650000","d":1,"a":[],"q":1,"f":"north","s":"north"},{"i":"659003","n":"图木舒克市","t":"province_direct_county","p":"650000","d":1,"a":[],"q":1,"f":"north","s":"north"},{"i":"659004","n":"五家渠市","t":"province_direct_county","p":"650000","d":1,"a":[],"q":1,"f":"north","s":"north"},{"i":"659005","n":"北屯市","t":"province_direct_county","p":"650000","d":1,"a":[],"q":1,"f":"north","s":"north"},{"i":"659006","n":"铁门关市","t":"province_direct_county","p":"650000","d":1,"a":[],"q":1,"f":"north","s":"north"},{"i":"659007","n":"双河市","t":"province_direct_county","p":"650000","d":1,"a":[],"q":1,"f":"north","s":"north"},{"i":"659008","n":"可克达拉市","t":"province_direct_county","p":"650000","d":1,"a":[],"q":1,"f":"north","s":"north"},{"i":"659009","n":"昆玉市","t":"province_direct_county","p":"650000","d":1,"a":[],"q":1,"f":"north","s":"north"},{"i":"659010","n":"胡杨河市","t":"province_direct_county","p":"650000","d":1,"a":[],"q":1,"f":"north","s":"north"},{"i":"659011","n":"新星市","t":"province_direct_county","p":"650000","d":1,"a":[],"q":1,"f":"north","s":"north"},{"i":"659012","n":"白杨市","t":"province_direct_county","p":"650000","d":1,"a":[],"q":1,"f":"north","s":"north"},{"i":"659013","n":"草湖市","t":"province_direct_county","p":"650000","d":1,"a":[],"q":1,"f":"north","s":"north"},{"i":"710000","n":"台湾省","t":"province","p":"","d":0,"a":[],"q":0,"f":"unknown","s":"unknown"},{"i":"810000","n":"香港特别行政区","t":"province","p":"","d":0,"a":[],"q":0,"f":"unknown","s":"unknown"},{"i":"820000","n":"澳门特别行政区","t":"province","p":"","d":0,"a":[],"q":0,"f":"unknown","s":"unknown"}]</script>
+<script type="application/json" id="recipes-data">{"110000":["local_nodata","zone_flu_north","zone_names_north","national_rank"],"120000":["local_nodata","zone_flu_north","zone_names_north","national_rank"],"130000":["local_nodata","zone_flu_north","zone_names_north","national_rank"],"130100":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"130200":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"130300":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"130400":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"130500":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"130600":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"130700":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"130800":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"130900":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"131000":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"131100":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"140000":["local_nodata","zone_flu_north","zone_names_north","national_rank"],"140100":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"140200":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"140300":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"140400":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"140500":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"140600":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"140700":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"140800":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"140900":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"141000":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"141100":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"150000":["local_nodata","zone_flu_north","zone_names_north","national_rank"],"150100":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"150200":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"150300":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"150400":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"150500":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"150600":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"150700":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"150800":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"150900":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"152200":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"152500":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"152900":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"210000":["local_nodata","zone_flu_north","zone_names_north","national_rank"],"210100":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"210200":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"210300":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"210400":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"210500":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"210600":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"210700":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"210800":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"210900":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"211000":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"211100":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"211200":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"211300":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"211400":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"220000":["local_nodata","zone_flu_north","zone_names_north","national_rank"],"220100":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"220200":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"220300":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"220400":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"220500":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"220600":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"220700":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"220800":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"222400":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"230000":["local_hlj_flu","local_hlj_sent","zone_flu_north","zone_names_north","national_rank"],"230100":["local_nodata","prov_hlj_flu","prov_hlj_sent","zone_flu_north","zone_names_north","national_rank"],"230200":["local_nodata","prov_hlj_flu","prov_hlj_sent","zone_flu_north","zone_names_north","national_rank"],"230300":["local_nodata","prov_hlj_flu","prov_hlj_sent","zone_flu_north","zone_names_north","national_rank"],"230400":["local_nodata","prov_hlj_flu","prov_hlj_sent","zone_flu_north","zone_names_north","national_rank"],"230500":["local_nodata","prov_hlj_flu","prov_hlj_sent","zone_flu_north","zone_names_north","national_rank"],"230600":["local_nodata","prov_hlj_flu","prov_hlj_sent","zone_flu_north","zone_names_north","national_rank"],"230700":["local_nodata","prov_hlj_flu","prov_hlj_sent","zone_flu_north","zone_names_north","national_rank"],"230800":["local_nodata","prov_hlj_flu","prov_hlj_sent","zone_flu_north","zone_names_north","national_rank"],"230900":["local_nodata","prov_hlj_flu","prov_hlj_sent","zone_flu_north","zone_names_north","national_rank"],"231000":["local_nodata","prov_hlj_flu","prov_hlj_sent","zone_flu_north","zone_names_north","national_rank"],"231100":["local_nodata","prov_hlj_flu","prov_hlj_sent","zone_flu_north","zone_names_north","national_rank"],"231200":["local_nodata","prov_hlj_flu","prov_hlj_sent","zone_flu_north","zone_names_north","national_rank"],"232700":["local_nodata","prov_hlj_flu","prov_hlj_sent","zone_flu_north","zone_names_north","national_rank"],"310000":["local_nodata","zone_flu_south","zone_names_south","national_rank"],"320000":["local_nodata","zone_flu_south","zone_names_south","national_rank"],"320100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"320200":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"320300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"320400":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"320500":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"320600":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"320700":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"320800":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"320900":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"321000":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"321100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"321200":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"321300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"330000":["local_nodata","zone_flu_south","zone_names_south","national_rank"],"330100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"330200":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"330300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"330400":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"330500":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"330600":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"330700":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"330800":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"330900":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"331000":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"331100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"340000":["local_nodata","zone_flu_south","zone_names_south","national_rank"],"340100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"340200":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"340300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"340400":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"340500":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"340600":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"340700":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"340800":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"341000":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"341100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"341200":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"341300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"341500":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"341600":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"341700":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"341800":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"350000":["local_nodata","zone_flu_south","zone_names_south","national_rank"],"350100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"350200":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"350300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"350400":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"350500":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"350600":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"350700":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"350800":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"350900":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"360000":["local_nodata","zone_flu_south","zone_names_south","national_rank"],"360100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"360200":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"360300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"360400":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"360500":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"360600":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"360700":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"360800":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"360900":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"361000":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"361100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"370000":["local_nodata","zone_flu_north","zone_names_north","national_rank"],"370100":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"370200":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"370300":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"370400":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"370500":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"370600":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"370700":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"370800":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"370900":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"371000":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"371100":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"371300":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"371400":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"371500":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"371600":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"371700":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"410000":["local_nodata","zone_flu_north","zone_names_north","national_rank"],"410100":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"410200":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"410300":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"410400":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"410500":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"410600":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"410700":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"410800":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"410900":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"411000":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"411100":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"411200":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"411300":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"411400":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"411500":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"411600":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"411700":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"419001":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"420000":["local_nodata","zone_flu_south","zone_names_south","national_rank"],"420100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"420200":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"420300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"420500":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"420600":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"420700":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"420800":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"420900":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"421000":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"421100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"421200":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"421300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"422800":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"429004":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"429005":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"429006":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"429021":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"430000":["local_nodata","zone_flu_south","zone_names_south","national_rank"],"430100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"430200":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"430300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"430400":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"430500":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"430600":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"430700":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"430800":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"430900":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"431000":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"431100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"431200":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"431300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"433100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"440000":["local_nodata","zone_flu_south","zone_names_south","national_rank"],"440100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"440200":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"440300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"440400":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"440500":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"440600":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"440700":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"440800":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"440900":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"441200":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"441300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"441400":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"441500":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"441600":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"441700":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"441800":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"441900":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"442000":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"445100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"445200":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"445300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"450000":["local_nodata","zone_flu_south","zone_names_south","national_rank"],"450100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"450200":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"450300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"450400":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"450500":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"450600":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"450700":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"450800":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"450900":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"451000":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"451100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"451200":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"451300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"451400":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"460000":["local_nodata","zone_flu_south","zone_names_south","national_rank"],"460100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"460200":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"460300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"460400":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"469001":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"469002":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"469005":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"469006":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"469007":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"469021":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"469022":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"469023":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"469024":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"469025":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"469026":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"469027":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"469028":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"469029":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"469030":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"500000":["cq_links","zone_flu_south","zone_names_south","national_rank"],"510000":["local_nodata","zone_flu_south","zone_names_south","national_rank"],"510100":["chengdu_default"],"510300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"510400":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"510500":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"510600":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"510700":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"510800":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"510900":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"511000":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"511100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"511300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"511400":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"511500":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"511600":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"511700":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"511800":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"511900":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"512000":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"513200":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"513300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"513400":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"520000":["local_nodata","zone_flu_south","zone_names_south","national_rank"],"520100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"520200":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"520300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"520400":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"520500":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"520600":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"522300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"522600":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"522700":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"530000":["local_nodata","zone_flu_south","zone_names_south","national_rank"],"530100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"530300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"530400":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"530500":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"530600":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"530700":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"530800":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"530900":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"532300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"532500":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"532600":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"532800":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"532900":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"533100":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"533300":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"533400":["local_nodata","prov_nodata","zone_flu_south","zone_names_south","national_rank"],"540000":["local_nodata","zone_flu_north","zone_names_north","national_rank"],"540100":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"540200":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"540300":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"540400":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"540500":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"540600":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"542500":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"610000":["local_nodata","zone_flu_north","zone_names_north","national_rank"],"610100":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"610200":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"610300":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"610400":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"610500":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"610600":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"610700":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"610800":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"610900":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"611000":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"620000":["local_nodata","zone_flu_north","zone_names_north","national_rank"],"620100":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"620200":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"620300":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"620400":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"620500":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"620600":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"620700":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"620800":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"620900":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"621000":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"621100":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"621200":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"622900":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"623000":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"630000":["local_nodata","zone_flu_north","zone_names_north","national_rank"],"630100":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"630200":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"632200":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"632300":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"632500":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"632600":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"632700":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"632800":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"640000":["local_nodata","zone_flu_north","zone_names_north","national_rank"],"640100":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"640200":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"640300":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"640400":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"640500":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"650000":["local_nodata","zone_flu_north","zone_names_north","national_rank"],"650100":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"650200":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"650400":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"650500":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"652300":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"652700":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"652800":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"652900":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"653000":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"653100":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"653200":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"654000":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"654200":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"654300":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"659001":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"659002":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"659003":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"659004":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"659005":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"659006":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"659007":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"659008":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"659009":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"659010":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"659011":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"659012":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"],"659013":["local_nodata","prov_nodata","zone_flu_north","zone_names_north","national_rank"]}</script>
+<script>
+/* A2 省市查询（S2 内联交互）：页面不联网，全部候选来自内嵌目录 JSON。
+   - 控件默认 disabled；init 全部成功（目录解析/元素绑定/事件注册/首渲染）后才启用。
+     任何异常→控件保持不可点，#q-status 常驻降级说明，成都默认内容保持完整可读。
+   - 只过滤目录里 q=1 的单位；港澳台占位（q=0）永不进入候选。
+   - 用户输入只用于匹配；落屏一律 textContent / createTextNode / cloneNode，绝不拼 HTML。
+   - 结果区按 recipes-data 的槽位顺序克隆 <template>，脚本不计算任何数值或口径。
+   - 清空输入、收起候选、Esc 都不改变当前已显示的结果；只有「查询」/点选候选/「回成都」切换视图。 */
+(function () {
+  "use strict";
+
+  var MAX_CANDIDATES = 8;
+  var FAIL_TEXT = "搜索功能初始化失败，页面按成都默认内容展示";
+  var BASE_STATUS_TAIL = " 个单位，可换用简称或上级地名。";
+  /* 复核 A01：不在运行时剥行政后缀（不猜"哈尔滨市"→"哈尔滨"这类改写），
+     只按 规范名/审核别名 的 精确 → 前缀 → 包含 三级匹配。"哈尔滨"作为
+     "哈尔滨市"的前缀本就能命中；简称一律走目录 aliases 审核列。 */
+  var TYPE_WORDS = { province: "省级", prefecture: "地级", province_direct_county: "省直辖县级" };
+
+  function fatal() {
+    var st = document.getElementById("q-status");
+    if (st) { st.textContent = FAIL_TEXT; }
+    var dv = document.getElementById("default-view");
+    if (dv) { dv.hidden = false; }
+    var qv = document.getElementById("query-view");
+    if (qv) { qv.hidden = true; }
+  }
+
+  function normalize(text) {
+    var out = "";
+    for (var i = 0; i < text.length; i++) {
+      var code = text.charCodeAt(i);
+      var ch = text.charAt(i);
+      if (code === 0x3000) { continue; }
+      if (code >= 0xff01 && code <= 0xff5e) { ch = String.fromCharCode(code - 0xfee0); }
+      if (ch === " " || ch === "\t" || ch === "\n" || ch === "\r") { continue; }
+      out += ch;
+    }
+    return out.toLowerCase();
+  }
+
+  function init() {
+    var qEl = document.getElementById("q");
+    var listEl = document.getElementById("q-list");
+    var statusEl = document.getElementById("q-status");
+    var queryView = document.getElementById("query-view");
+    var defaultView = document.getElementById("default-view");
+    var goBtn = document.getElementById("q-go");
+    var clearBtn = document.getElementById("q-clear");
+    var homeBtn = document.getElementById("q-home");
+    if (!qEl || !listEl || !statusEl || !queryView || !defaultView ||
+        !goBtn || !clearBtn || !homeBtn) {
+      throw new Error("search elements missing");
+    }
+    var catalogRaw = document.getElementById("catalog-data");
+    var recipesRaw = document.getElementById("recipes-data");
+    if (!catalogRaw || !recipesRaw) { throw new Error("embedded data missing"); }
+    var rows = JSON.parse(catalogRaw.textContent);
+    var recipes = JSON.parse(recipesRaw.textContent);
+    if (!rows || typeof rows.length !== "number" || !recipes || typeof recipes !== "object") {
+      throw new Error("embedded data malformed");
+    }
+
+    var units = [];
+    var byId = {};
+    for (var ri = 0; ri < rows.length; ri++) {
+      var row = rows[ri];
+      if (!row || row.q !== 1) { continue; }
+      var aliases = [];
+      var rawAliases = row.a || [];
+      for (var ai = 0; ai < rawAliases.length; ai++) {
+        var al = normalize(rawAliases[ai]);
+        if (al) { aliases.push(al); }
+      }
+      var unit = {
+        id: row.i,
+        name: row.n,
+        type: row.t,
+        parent: row.p,
+        aliases: aliases,
+        norm: normalize(row.n)
+      };
+      units.push(unit);
+      byId[unit.id] = unit;
+    }
+    if (!units.length) { throw new Error("catalog empty"); }
+
+    var items = [];
+    var activeIdx = -1;
+
+    function say(text) { statusEl.textContent = text; }
+
+    function listOpen() { return !listEl.hidden; }
+
+    function closeList() {
+      listEl.hidden = true;
+      qEl.setAttribute("aria-expanded", "false");
+      if (qEl.hasAttribute("aria-activedescendant")) {
+        qEl.removeAttribute("aria-activedescendant");
+      }
+      activeIdx = -1;
+    }
+
+    function setActive(idx) {
+      var kids = listEl.children;
+      for (var k = 0; k < kids.length; k++) {
+        kids[k].setAttribute("aria-selected", k === idx ? "true" : "false");
+      }
+      if (idx >= 0 && kids[idx]) {
+        qEl.setAttribute("aria-activedescendant", kids[idx].id);
+        activeIdx = idx;
+      } else {
+        if (qEl.hasAttribute("aria-activedescendant")) {
+          qEl.removeAttribute("aria-activedescendant");
+        }
+        activeIdx = -1;
+      }
+    }
+
+    function subLine(unit) {
+      var parts = [];
+      if (TYPE_WORDS[unit.type]) { parts.push(TYPE_WORDS[unit.type]); }
+      if (unit.parent && byId[unit.parent]) { parts.push(byId[unit.parent].name); }
+      return parts.join(" · ");
+    }
+
+    function optionNode(unit, idx) {
+      var li = document.createElement("li");
+      li.className = "q-item";
+      li.id = "q-opt-" + idx;
+      li.setAttribute("role", "option");
+      li.setAttribute("aria-selected", "false");
+      var nameSpan = document.createElement("span");
+      nameSpan.textContent = unit.name;
+      li.appendChild(nameSpan);
+      var subSpan = document.createElement("span");
+      subSpan.className = "q-sub";
+      subSpan.textContent = "  " + subLine(unit);
+      li.appendChild(subSpan);
+      li.addEventListener("mousedown", function (ev) {
+        ev.preventDefault();
+        selectAt(idx);
+      });
+      return li;
+    }
+
+    function openList(matches) {
+      while (listEl.firstChild) { listEl.removeChild(listEl.firstChild); }
+      items = matches;
+      if (!items.length) { closeList(); return; }
+      for (var n = 0; n < items.length; n++) { listEl.appendChild(optionNode(items[n], n)); }
+      listEl.hidden = false;
+      qEl.setAttribute("aria-expanded", "true");
+      setActive(-1); /* 复核 01：多候选必须显式选中，不默认激活第一项 */
+    }
+
+    /* 复核 A01：三级匹配，不再运行时剥后缀。
+       0 精确（规范名或审核别名全等）→ 1 前缀（规范名或别名）→ 2 包含（规范名或别名）。
+       同级内先短名后长名，最后按 id 稳定排序。 */
+    function matchScore(unit, needle) {
+      if (unit.norm === needle) { return 0; }
+      var i;
+      for (i = 0; i < unit.aliases.length; i++) {
+        if (unit.aliases[i] === needle) { return 0; }
+      }
+      if (unit.norm.indexOf(needle) === 0) { return 1; }
+      for (i = 0; i < unit.aliases.length; i++) {
+        if (unit.aliases[i].indexOf(needle) === 0) { return 1; }
+      }
+      if (unit.norm.indexOf(needle) >= 0) { return 2; }
+      for (i = 0; i < unit.aliases.length; i++) {
+        if (unit.aliases[i].indexOf(needle) >= 0) { return 2; }
+      }
+      return -1;
+    }
+
+    function search(needle) {
+      var hits = [];
+      for (var i = 0; i < units.length; i++) {
+        var score = matchScore(units[i], needle);
+        if (score >= 0) { hits.push({ unit: units[i], score: score }); }
+      }
+      hits.sort(function (a, b) {
+        if (a.score !== b.score) { return a.score - b.score; }
+        if (a.unit.name.length !== b.unit.name.length) {
+          return a.unit.name.length - b.unit.name.length;
+        }
+        return a.unit.id < b.unit.id ? -1 : (a.unit.id > b.unit.id ? 1 : 0);
+      });
+      var out = [];
+      for (var k = 0; k < hits.length && k < MAX_CANDIDATES; k++) { out.push(hits[k].unit); }
+      return out;
+    }
+
+    function clearQueryView() {
+      while (queryView.firstChild) { queryView.removeChild(queryView.firstChild); }
+    }
+
+    function showDefault(msg) {
+      clearQueryView();
+      queryView.hidden = true;
+      defaultView.hidden = false;
+      if (msg) { say(msg); }
+    }
+
+    /* 先在离屏 staging 里拼好，再整体替换并一次性显示（避免半成品闪屏）。 */
+    function renderResult(unit, slots) {
+      var staging = document.createElement("div");
+      var missing = [];
+      for (var s = 0; s < slots.length; s++) {
+        var slot = slots[s];
+        var tpl = document.getElementById("tpl-" + slot);
+        if (!tpl) { missing.push(slot); continue; }
+        staging.appendChild(tpl.content.cloneNode(true));
+      }
+      if (missing.length) {
+        /* 复核 04：缺模板即失败恢复完整成都默认视图，不半新半旧展示 */
+        showDefault(unit.name + " 数据模块缺失（" + missing.join("、") +
+                    "），已恢复成都默认。");
+        return;
+      }
+      clearQueryView();
+      while (staging.firstChild) { queryView.appendChild(staging.firstChild); }
+      queryView.hidden = false;
+      defaultView.hidden = true;
+      say(unit.name + "：按该地区可用数据分块展示，各块自标口径与数据状态。");
+      var heading = queryView.querySelector("h2, h3, h1");
+      if (heading) {
+        heading.setAttribute("tabindex", "-1");
+        heading.focus();
+      } else {
+        queryView.setAttribute("tabindex", "-1");
+        queryView.focus();
+      }
+    }
+
+    function selectUnit(unit) {
+      try {
+        var slots = recipes[unit.id];
+        if (!slots || !slots.length) {
+          say("该地区暂无可查询的数据配方（" + unit.name + "）。");
+          return;
+        }
+        if (slots.length === 1 && slots[0] === "chengdu_default") {
+          closeList();
+          qEl.value = "";
+          showDefault("已恢复成都默认");
+          return;
+        }
+        closeList();
+        qEl.value = unit.name;
+        renderResult(unit, slots);
+      } catch (err) {
+        /* 复核 04：查询切换入口统一捕获——克隆/渲染异常恢复成都默认 */
+        showDefault("查询切换失败（" + (err && err.message ? err.message : err) +
+                    "），已恢复成都默认。");
+      }
+    }
+
+    function selectAt(idx) {
+      if (idx >= 0 && items[idx]) { selectUnit(items[idx]); }
+    }
+
+    function noMatchText() {
+      return "未找到匹配的省市。目录共 " + units.length + BASE_STATUS_TAIL;
+    }
+
+    function handleInput() {
+      var needle = normalize(qEl.value);
+      if (!needle) {
+        items = []; /* 复核 01：手动删空输入须废弃旧候选，防 Enter 误选 */
+        closeList();
+        say("输入为空：候选已清空，当前显示结果保持不变。");
+        return;
+      }
+      var matches = search(needle);
+      if (!matches.length) {
+        openList([]);
+        say(noMatchText());
+        return;
+      }
+      openList(matches);
+      say("匹配到 " + matches.length + " 个地区，用 ↑↓ 选择、回车确认，或直接点列表项。");
+    }
+
+    function onGo() {
+      var needle = normalize(qEl.value);
+      if (!needle) {
+        say("请先输入省市名称，再点「查询」。");
+        qEl.focus();
+        return;
+      }
+      if (listOpen() && items.length === 1) { selectAt(0); return; }
+      if (listOpen() && items.length > 1) {
+        say("匹配到 " + items.length + " 个地区，请从列表中选择。");
+        return;
+      }
+      var matches = search(needle);
+      if (!matches.length) { say(noMatchText()); return; }
+      if (matches.length === 1) { selectUnit(matches[0]); return; }
+      openList(matches);
+      say("匹配到 " + matches.length + " 个地区，请从列表中选择。");
+    }
+
+    /* 清空只管输入框与候选：不切视图、不动已显示的结果。 */
+    function onClear() {
+      qEl.value = "";
+      items = [];
+      closeList();
+      say("已清空输入与候选，当前显示结果未变。");
+      qEl.focus();
+    }
+
+    function onHome() {
+      qEl.value = "";
+      items = [];
+      closeList();
+      showDefault("已恢复成都默认");
+    }
+
+    function onKeyDown(ev) {
+      var key = ev.key;
+      if (key === "ArrowDown") {
+        if (!listOpen() || !items.length) { return; }
+        ev.preventDefault();
+        setActive(activeIdx + 1 >= items.length ? 0 : activeIdx + 1);
+        return;
+      }
+      if (key === "ArrowUp") {
+        if (!listOpen() || !items.length) { return; }
+        ev.preventDefault();
+        setActive(activeIdx - 1 < 0 ? items.length - 1 : activeIdx - 1);
+        return;
+      }
+      if (key === "Enter") {
+        ev.preventDefault();
+        if (listOpen() && activeIdx >= 0 && items[activeIdx]) { selectAt(activeIdx); return; }
+        if (items.length === 1) { selectAt(0); return; }
+        onGo();
+        return;
+      }
+      if (key === "Escape") {
+        /* 分层（复核 01）：第一下收起列表；列表已收起时再按一次仅清空输入，
+           不改变已显示的结果、不回成都。 */
+        ev.preventDefault();
+        if (listOpen()) {
+          closeList();
+          say("已收起候选列表，再按一次 Esc 清空输入。");
+        } else {
+          qEl.value = "";
+          items = [];
+          say("已清空输入，当前显示结果未变。");
+        }
+        return;
+      }
+      if (key === "Tab") { closeList(); }
+    }
+
+    function onDocKeyDown(ev) {
+      if (ev.key !== "Escape") { return; }
+      if (listOpen()) { closeList(); }
+    }
+
+    function onDocMouseDown(ev) {
+      if (!listOpen()) { return; }
+      if (ev.target === qEl || listEl.contains(ev.target)) { return; }
+      closeList();
+    }
+
+    qEl.addEventListener("input", handleInput);
+    qEl.addEventListener("keydown", onKeyDown);
+    goBtn.addEventListener("click", onGo);
+    clearBtn.addEventListener("click", onClear);
+    homeBtn.addEventListener("click", onHome);
+    document.addEventListener("keydown", onDocKeyDown);
+    document.addEventListener("mousedown", onDocMouseDown);
+
+    closeList();
+    qEl.disabled = false;
+    goBtn.disabled = false;
+    clearBtn.disabled = false;
+    homeBtn.disabled = false;
+    say("已就绪：目录共 " + units.length + " 个单位，输入省市名称开始查询（页面不联网）。");
+  }
+
+  try {
+    init();
+  } catch (err) {
+    fatal();
+  }
+})();
+</script>
+</body>
+</html>

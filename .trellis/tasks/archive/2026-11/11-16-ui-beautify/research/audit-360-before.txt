@@ -1,0 +1,33 @@
+== 360px ==  inner=360 scrollW=360 scrollH=3400 cards=6 bigs=2
+   top: {"h1": 32, "first_h2": 383, "first_big": 411, "second_big": 828, "first_card": 367}
+   鏂囨湰鑺傜偣=152  浣庝簬 AA=25  <12px=33
+   -- 瀵规瘮搴︿笉瓒筹紙worst 18锛?--
+    2.35 / 闇€4.5     11px 400  q-ver                      鐩綍鐗堟湰锛氭皯鏀块儴 2025 骞存湯 + CC0 areacodes锛堝惈
+    2.66 / 闇€4.5     11px 400  hist-sub2                  鎴嚦绗?5鍛?
+    2.66 / 闇€4.5     11px 400  hist-sub2                  涓嶆槸棰勬祴
+    2.66 / 闇€4.5     11px 400  hist-sub2                  宸叉敹褰?5鍛?
+    2.85 / 闇€4.5     11px 400  hist-scroll-hint           鈫?宸﹀彸婊戝姩鏌ョ湅瀹屾暣瀵圭収
+    2.85 / 闇€4.5     11px 400  hist-sub2                  Goldstein
+    2.85 / 闇€4.5     11px 400  hist-sub2                  宸叉敹褰?2鍛?
+    2.85 / 闇€4.5     11px 400  hist-sub2                  宸叉敹褰?2鍛?
+    2.85 / 闇€4.5     11px 400  hist-sub2                  宸叉敹褰?2鍛?
+    3.28 / 闇€4.5     12px 400  sub                        鍒嗗潡璇佹嵁 路 鍚勮嚜鍙ｅ緞 路 涓嶅悎鎴愭€诲垎
+    3.54 / 闇€4.5     13px 400  unit                       锛?026骞?0鏈堬級
+    3.54 / 闇€4.5     13px 400  unit                       Goldstein 鎸囨暟锛堢浉瀵瑰己搴︼級
+    3.54 / 闇€4.5     12px 400  hist-sub                   鍗楁柟鐗?路 Goldstein 鐩稿寮哄害鎸囨暟锛圛LI%脳娴佹劅闃虫€х巼锛?
+    3.54 / 闇€4.5     11px 400                             2026骞寸45鍛ㄤ笌寰€骞村悓鍛ㄥ鐓?
+    3.54 / 闇€4.5     11px 400                             骞翠唤
+    3.54 / 闇€4.5     11px 400                             ISO鍛ㄨ捣
+    3.54 / 闇€4.5     11px 400                             鎸囨暟
+    3.54 / 闇€4.5     11px 400                             ILI%
+   -- 瀛楀彿 <12px --
+       9px [object SVGAnimatedString] 2024W46
+       9px [object SVGAnimatedString] 2026W45
+       9px [object SVGAnimatedString] 2024W46
+       9px [object SVGAnimatedString] 2026W45
+       9px [object SVGAnimatedString] 2024W46
+       9px [object SVGAnimatedString] 2026W45
+      11px q-ver                      鐩綍鐗堟湰锛氭皯鏀块儴 2025 骞存湯 + CC0 areacodes锛堝惈
+      11px tag                        10鏈堝凡纭绛夌骇 路 鏈湀寰呮洿鏂?
+      11px tag                        鐪佺骇瀹樻柟鍒嗙骇
+      11px tag                        鏁版嵁姝ｅ父 路 2026骞寸45鍛?路 鏉ユ簮鍙戝竷 2026-11-12

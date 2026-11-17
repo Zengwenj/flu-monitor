@@ -1,0 +1,11 @@
+init_ready=True
+  [PASS] A-default-hidden-attr  (dv.hidden=true)
+  [PASS] A-default-display-none  (computed display=none)
+  [PASS] A-query-visible-nonempty  (qv.hidden=false kids=6)
+  [PASS] B-default-restored  (dv.hidden=false display=grid)
+  [PASS] B-query-hidden  (qv.hidden=true)
+  [PASS] C-query-shown-first  (kids=4)
+  [PASS] C-clear-keeps-result  (after clear: qv.hidden=false kids=4 (before 4))
+  [PASS] C-clear-keeps-default-hidden  (dv.hidden=true)
+  [PASS] C-clear-empties-input  (q.value="")
+RESULT: PASS

@@ -1,0 +1,13 @@
+== 1280px ==  inner=1280 scrollW=1280 scrollH=3400 cards=6 bigs=2
+   top: {"h1": 34, "first_h2": 292, "first_big": 317, "second_big": 696, "first_card": 277}
+   鏂囨湰鑺傜偣=157  浣庝簬 AA=0  <12px=9
+   -- 瀛楀彿 <12px --
+      10px [object SVGAnimatedString] 2024W46
+      10px [object SVGAnimatedString] 2026W45
+      10px [object SVGAnimatedString] 2024W46
+      10px [object SVGAnimatedString] 2026W45
+      10px [object SVGAnimatedString] 2024W46
+      10px [object SVGAnimatedString] 2026W45
+      11px [object SVGAnimatedString] 18.8%
+      11px [object SVGAnimatedString] 0.8%
+      11px [object SVGAnimatedString] 1.2%

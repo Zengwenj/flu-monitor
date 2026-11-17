@@ -1,0 +1,36 @@
+== 1280px
+{
+ "olListStyle": "none",
+ "olPadLeft": "0px",
+ "liListStyle": "none",
+ "liPadLeft": "24px",
+ "liTextIndent": "-24px",
+ "liLeft": 123,
+ "olLeft": 123,
+ "liH": 24,
+ "items": [
+  "锛?锛夊嫟娲楁墜锛屾墦鍠峰殢",
+  "锛?锛夐伩鍏嶅甫鐥呬笂璇句笂",
+  "锛?锛夊敖閲忛伩鍏嶆帴瑙︽祦",
+  "锛?锛夐紦鍔卞競姘戞帴绉嶆祦",
+  "锛?锛夊姞寮哄鏍℃墭骞兼満"
+ ]
+}
+== 360px
+{
+ "olListStyle": "none",
+ "olPadLeft": "0px",
+ "liListStyle": "none",
+ "liPadLeft": "24px",
+ "liTextIndent": "-24px",
+ "liLeft": 39,
+ "olLeft": 39,
+ "liH": 49,
+ "items": [
+  "锛?锛夊嫟娲楁墜锛屾墦鍠峰殢",
+  "锛?锛夐伩鍏嶅甫鐥呬笂璇句笂",
+  "锛?锛夊敖閲忛伩鍏嶆帴瑙︽祦",
+  "锛?锛夐紦鍔卞競姘戞帴绉嶆祦",
+  "锛?锛夊姞寮哄鏍℃墭骞兼満"
+ ]
+}
