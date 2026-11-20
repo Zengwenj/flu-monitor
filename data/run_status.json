@@ -1,9 +1,9 @@
 {
   "schema": 2,
-  "run_id": "20261117T132007-0343902f",
+  "run_id": "20261120T093000-a1687e01",
   "origin": "cloud",
-  "started_at": "2026-11-17T13:20:07+00:00",
-  "finished_at": "2026-11-17T13:21:18+00:00",
+  "started_at": "2026-11-20T09:30:00+00:00",
+  "finished_at": "2026-11-20T09:31:16+00:00",
   "stage": "build",
   "complete": true,
   "sources": {
@@ -13,15 +13,15 @@
     },
     "sentinel": {
       "status": "ok",
-      "reason": "2288 行 / 1127 行"
+      "reason": "2310 行 / 1139 行"
     },
     "flu_south": {
       "status": "ok",
-      "week": "2026W45"
+      "week": "2026W46"
     },
     "flu_north": {
       "status": "ok",
-      "week": "2026W45"
+      "week": "2026W46"
     },
     "heilongjiang_flu": {
       "status": "ok",
@@ -36,11 +36,11 @@
   "compute": {
     "south": {
       "status": "ok",
-      "computed": 201
+      "computed": 202
     },
     "north": {
       "status": "ok",
-      "computed": 201
+      "computed": 202
     },
     "heilongjiang": {
       "status": "ok",
